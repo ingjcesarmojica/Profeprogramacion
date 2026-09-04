@@ -89,6 +89,15 @@
             messagesEl.appendChild(msg);
             messagesEl.scrollTop = messagesEl.scrollHeight;
 
+            // Apariencia inmediata: si en 3s no llega el primer token,
+            // mostramos un "..." sutil para no sentir que se quedo colgado.
+            let firstTokenSeen = false;
+            const typingFallback = setTimeout(() => {
+                if (!firstTokenSeen) {
+                    span.textContent = "...";
+                }
+            }, 3000);
+
             let fullText = "";
             try {
                 const res = await fetch("/api/chat/stream", {
@@ -119,12 +128,34 @@
                         try {
                             const obj = JSON.parse(payload);
                             if (obj.event === "token" && obj.delta) {
+                                if (!firstTokenSeen) {
+                                    firstTokenSeen = true;
+                                    clearTimeout(typingFallback);
+                                    span.textContent = "";
+                                }
                                 fullText += obj.delta;
                                 span.textContent = fullText;
                                 messagesEl.scrollTop = messagesEl.scrollHeight;
                             } else if (obj.event === "done") {
+                                firstTokenSeen = true;
+                                clearTimeout(typingFallback);
                                 fullText = obj.text || fullText;
                                 span.textContent = fullText;
+                                // Renderizar botones de acciones rapidas (como antes)
+                                if (obj.botones && obj.botones.length) {
+                                    const cont = document.createElement("div");
+                                    cont.className = "buttons-container";
+                                    obj.botones.forEach(b => {
+                                        const btn = document.createElement("button");
+                                        btn.className = "option-btn";
+                                        btn.textContent = b.texto;
+                                        btn.title = b.descripcion || "";
+                                        btn.onclick = () => { sendAction(b.valor, b.texto); disableBtns(cont); };
+                                        cont.appendChild(btn);
+                                    });
+                                    msg.parentNode.insertBefore(cont, msg.nextSibling);
+                                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                                }
                             } else if (obj.error) {
                                 span.textContent = "Error: " + obj.error;
                             }
@@ -153,6 +184,8 @@
                 } catch (e2) {
                     span.textContent = "Error de conexión. Por favor, inténtalo de nuevo.";
                 }
+            } finally {
+                clearTimeout(typingFallback);
             }
         }
 
@@ -174,7 +207,7 @@
             addMessage(texto, "user");
             showTyping();
             // Si el usuario selecciona un nivel, lo guardamos localmente para el badge
-            const nivelesValidos = ["INICIO","NOVATO","APRENDIZ","TECNICO","TECNOLOGO","INGENIERO","INGENIERO_IA"];
+            const nivelesValidos = ["INICIO","NOVATO","APRENDIZ","TECNICO","TECNOLOGO","INGENIERO","INGENIERO_IA","JUNIOR","SENIOR","CONSULTOR","ANALISTA_DATOS","DBA","CALIDAD"];
             if (nivelesValidos.includes(action)) {
                 sessionStorage.setItem("nivel", action);
             }

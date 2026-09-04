@@ -93,7 +93,7 @@ SYSTEM_PROMPT_BASE = """Eres el Ing. MOJICA, un profesor de programación amable
 - Usa analogías: "una variable es como una caja con una etiqueta", "un bucle es como repetir una receta N veces", etc.
 - Frases motivadoras: "¡Excelente!", "¡Casi!", "No te preocupes, esto es difícil al principio", "¡Lo estás haciendo genial!", "¡Muy bien!"
 
-## Los 7 niveles que enseñas (adapta tu respuesta al nivel del estudiante):
+## Los niveles que enseñas (adapta tu respuesta al nivel del estudiante):
 
 ### 🌱 INICIO (sin experiencia previa)
 - Qué es programar, pensamiento lógico y algorítmico
@@ -139,6 +139,27 @@ SYSTEM_PROMPT_BASE = """Eres el Ing. MOJICA, un profesor de programación amable
 - Seguridad: OWASP Top 10, autenticación (OAuth2, JWT)
 - Arquitectura hexagonal, DDD, event sourcing
 
+### 💼 JUNIOR (primer empleo formal)
+- Flujo de trabajo profesional: tickets, PRs, code reviews
+- Buenas prácticas de branching (GitFlow, trunk-based)
+- Estimación de tareas, comunicación con PM y equipo
+- Onboarding en proyectos reales, lectura de código legacy
+- Testing básico y debugging en producción
+
+### 👑 SENIOR (diseño de sistemas, liderazgo técnico)
+- Diseño de sistemas distribuidos y de alta disponibilidad
+- Mentoría a developers junior y mid
+- Toma de decisiones técnicas: trade-offs, costos, deuda técnica
+- Performance tuning: profiling, optimización, caching avanzado
+- Patrones avanzados: CQRS, event sourcing, saga
+
+### 🧭 CONSULTOR (arquitectura empresarial)
+- Arquitectura empresarial: TOGAF, mapeo de capacidades
+- Migraciones entre stacks y nubes (lift & shift, refactor, replatform)
+- Múltiples stacks y lenguajes según el cliente
+- Documentación técnica y presentaciones ejecutivas
+- Auditorías de código y procesos
+
 ### 🤖 INGENIERO DE IA (machine learning, deep learning, MLOps)
 - Matemáticas para IA: álgebra lineal, cálculo, probabilidad y estadística
 - Machine Learning clásico: regresión, clasificación, clustering, scikit-learn
@@ -147,6 +168,29 @@ SYSTEM_PROMPT_BASE = """Eres el Ing. MOJICA, un profesor de programación amable
 - LLMs: prompt engineering, fine-tuning, RAG, agentes
 - MLOps: versionado de datos y modelos, pipelines, MLflow, deployment de modelos
 - Ética en IA, sesgos, interpretabilidad
+
+### 📊 ANALISTA DE DATOS (SQL, ETL, dashboards)
+- SQL avanzado: joins, window functions, CTEs
+- ETL con Python, Airflow, dbt
+- Visualización: Tableau, Power BI, Looker, matplotlib, seaborn
+- Análisis de negocio: KPIs, cohortes, funnels, A/B testing
+- Storytelling con datos y reportes ejecutivos
+- Estadística descriptiva e inferencial aplicada
+
+### 🗄️ DBA (administración de bases de datos)
+- Administración PostgreSQL, MySQL, SQL Server, Oracle
+- Tuning de queries: índices, planes de ejecución, particionamiento
+- Backups, recuperación ante desastres, replicación y alta disponibilidad
+- Seguridad: roles, permisos, cifrado, auditoría
+- Migraciones y monitoreo de producción
+
+### ✅ CALIDAD (QA - testing automatizado)
+- Testing manual: casos de prueba, exploratory testing, reporte de bugs
+- Testing automatizado: Selenium, Cypress, Playwright
+- Testing de API: Postman, REST Assured, pytest
+- CI/CD para tests: integración continua de suites
+- Testing de rendimiento con JMeter, k6, Locust
+- ISTQB y buenas prácticas de calidad
 
 ## Cosas que SÍ puedo hacer:
 - Explicar conceptos de programación con ejemplos en cualquier lenguaje popular (Python, JavaScript, Java, C++, C#, Go, Rust, PHP, Ruby, etc.)
@@ -176,13 +220,19 @@ SYSTEM_PROMPT_BASE = """Eres el Ing. MOJICA, un profesor de programación amable
 
 
 NIVELES_DESCRIPCION_PROG = {
-    "INICIO":       "Inicio - sin experiencia previa, primeros pasos en programación",
-    "NOVATO":       "Novato - conceptos básicos y primer lenguaje",
-    "APRENDIZ":     "Aprendiz - estructuras de control, funciones y POO inicial",
-    "TECNICO":      "Técnico - frameworks, bases de datos y desarrollo web/móvil",
-    "TECNOLOGO":    "Tecnólogo - arquitectura de software, APIs y despliegue",
-    "INGENIERO":    "Ingeniero - sistemas distribuidos, DevOps y buenas prácticas",
-    "INGENIERO_IA": "Ingeniero de IA - machine learning, deep learning y MLOps",
+    "INICIO":         "Inicio - sin experiencia previa, primeros pasos en programación",
+    "NOVATO":         "Novato - conceptos básicos y primer lenguaje",
+    "APRENDIZ":       "Aprendiz - estructuras de control, funciones y POO inicial",
+    "TECNICO":        "Técnico - frameworks, bases de datos y desarrollo web/móvil",
+    "TECNOLOGO":      "Tecnólogo - arquitectura de software, APIs y despliegue",
+    "INGENIERO":      "Ingeniero - sistemas distribuidos, DevOps y buenas prácticas",
+    "JUNIOR":         "Junior - primer empleo formal, code reviews y trabajo en equipo",
+    "SENIOR":         "Senior - diseño de sistemas, mentoría y liderazgo técnico",
+    "CONSULTOR":      "Consultor - arquitectura empresarial, múltiples stacks y clientes",
+    "INGENIERO_IA":   "Ingeniero de IA - machine learning, deep learning y MLOps",
+    "ANALISTA_DATOS": "Analista de Datos - SQL, ETL, dashboards y análisis de negocio",
+    "DBA":            "DBA - administración de bases de datos, tuning, backups y replicación",
+    "CALIDAD":        "Calidad (QA) - testing automatizado, pruebas funcionales y de rendimiento",
 }
 
 
@@ -205,10 +255,29 @@ async def generate_edge_tts(text, voice=None, rate=None):
 
 
 def get_rag_context(user_message):
-    """Busca contexto relevante en Pinecone."""
+    """Busca contexto relevante en Pinecone.
+
+    Chequeo rapido: si el indice esta vacio (sin documentos cargados),
+    saltamos el RAG por completo para evitar el round-trip de embedding
+    en cada mensaje. Esto reduce la latencia del primer token
+    significativamente.
+    """
     if not RAG_AVAILABLE:
         return ""
     try:
+        # Chequeo barato: el indice tiene vectores?
+        from rag import get_index
+        idx = get_index()
+        if idx is None:
+            return ""
+        try:
+            stats = idx.describe_index_stats()
+            if not stats.total_vector_count:
+                return ""
+        except Exception:
+            # Si falla el stats, no bloqueamos la respuesta
+            return ""
+
         docs = search_knowledge(user_message, n_results=3)
         if not docs:
             return ""
@@ -277,7 +346,14 @@ Responde como el Ing. MOJICA de forma amable y motivadora. Mantén la respuesta 
 
 
 def openrouter_stream(user_message, student_data, modo_actual=""):
-    """Streaming de OpenRouter. Yield cada fragmento incremental."""
+    """Streaming de OpenRouter. Yield cada fragmento incremental.
+
+    Optimizaciones de latencia:
+    - max_tokens bajo (350) para respuestas cortas y rapidas
+    - timeout corto (10s) en el handshake: si el primer byte tarda mas,
+      el orquestador hace fallback automatico a Gemini
+    - RAG solo si el indice Pinecone tiene vectores (chequeo previo)
+    """
     if not OPENROUTER_CONFIGURED:
         return
     try:
@@ -299,14 +375,14 @@ Responde como el Ing. MOJICA de forma amable y motivadora. Mantén la respuesta 
             "model": OPENROUTER_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7,
-            "max_tokens": 600,
+            "max_tokens": 350,
             "stream": True,
         }
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
             json=payload,
-            timeout=None,
+            timeout=(5, 10),  # (connect, read) en segundos
             stream=True,
         )
         response.raise_for_status()
@@ -366,7 +442,12 @@ def gemini_stream(user_message, student_data, modo_actual=""):
 Estudiante dijo: {user_message}
 
 Responde como el Ing. MOJICA, en español, de forma amable y motivadora:"""
-        for chunk in gemini_model.generate_content(prompt, stream=True):
+        # generation_config limita max_output_tokens para acelerar la respuesta
+        for chunk in gemini_model.generate_content(
+            prompt,
+            stream=True,
+            generation_config={"max_output_tokens": 350, "temperature": 0.7},
+        ):
             try:
                 text = chunk.text
             except Exception:
@@ -536,8 +617,12 @@ def handle_action(action, student):
     """Maneja acciones de botones (level, mode, goal)."""
     paso_actual = student.get("paso_actual", "welcome")
 
-    # Accin: seleccionar nivel (los 7 niveles del Ing. MOJICA)
-    niveles_validos = ["INICIO", "NOVATO", "APRENDIZ", "TECNICO", "TECNOLOGO", "INGENIERO", "INGENIERO_IA"]
+    # Accin: seleccionar nivel (los 13 niveles del Ing. MOJICA)
+    niveles_validos = [
+        "INICIO", "NOVATO", "APRENDIZ", "TECNICO", "TECNOLOGO",
+        "INGENIERO", "INGENIERO_IA", "JUNIOR", "SENIOR",
+        "CONSULTOR", "ANALISTA_DATOS", "DBA", "CALIDAD",
+    ]
     if action in niveles_validos:
         student["nivel"] = action
         student["paso_actual"] = "ask_goal"
@@ -743,12 +828,22 @@ def handle_step(paso_actual, user_message, student):
 
 
 # ── Endpoint de streaming (SSE) ──────────────────────────────────────
+# Botones que se muestran al final de cada respuesta del LLM, igual que
+# antes en el endpoint clasico /api/chat cuando paso=in_session.
+IN_SESSION_BOTONES = [
+    {"texto": "Cambiar modo",   "valor": "change_mode"},
+    {"texto": "Mi progreso",    "valor": "progress"},
+    {"texto": "Finalizar sesión", "valor": "goodbye"},
+]
+
+
 @app.route("/api/chat/stream", methods=["POST"])
 def chat_stream():
     """Stream de la respuesta del LLM usando Server-Sent Events.
 
     Cada chunk que llega del LLM se envia como un evento SSE 'data: <json>'.
-    Al terminar se envia un evento final con done=true.
+    Al terminar se envia un evento final con done=true y los botones
+    de acciones rapidas (igual que el endpoint clasico).
     """
     def event_stream():
         try:
@@ -767,7 +862,12 @@ def chat_stream():
                 full.append(piece)
                 yield "data: " + json.dumps({"event": "token", "delta": piece}) + "\n\n"
             final_text = "".join(full)
-            yield "data: " + json.dumps({"event": "done", "text": final_text}) + "\n\n"
+            # Evento final con texto completo + botones de acciones rapidas
+            yield "data: " + json.dumps({
+                "event": "done",
+                "text": final_text,
+                "botones": IN_SESSION_BOTONES,
+            }) + "\n\n"
         except Exception as e:
             app.logger.error(f"chat_stream error: {e}")
             yield "data: " + json.dumps({"error": str(e)}) + "\n\n"

@@ -23,17 +23,29 @@ NIVELES = [
     "TECNOLOGO",
     "INGENIERO",
     "INGENIERO_IA",
+    "JUNIOR",
+    "SENIOR",
+    "CONSULTOR",
+    "ANALISTA_DATOS",
+    "DBA",
+    "CALIDAD",
 ]
 
 # Descripción de cada nivel
 NIVELES_DESCRIPCION = {
-    "INICIO":      "Inicio - sin experiencia previa, primeros pasos en programación",
-    "NOVATO":      "Novato - conceptos básicos y primer lenguaje",
-    "APRENDIZ":    "Aprendiz - estructuras de control, funciones y POO inicial",
-    "TECNICO":     "Técnico - frameworks, bases de datos y desarrollo web/móvil",
-    "TECNOLOGO":   "Tecnólogo - arquitectura de software, APIs y despliegue",
-    "INGENIERO":   "Ingeniero - sistemas distribuidos, DevOps y buenas prácticas",
-    "INGENIERO_IA":"Ingeniero de IA - machine learning, deep learning y MLOps",
+    "INICIO":          "Inicio - sin experiencia previa, primeros pasos en programación",
+    "NOVATO":          "Novato - conceptos básicos y primer lenguaje",
+    "APRENDIZ":        "Aprendiz - estructuras de control, funciones y POO inicial",
+    "TECNICO":         "Técnico - frameworks, bases de datos y desarrollo web/móvil",
+    "TECNOLOGO":       "Tecnólogo - arquitectura de software, APIs y despliegue",
+    "INGENIERO":       "Ingeniero - sistemas distribuidos, DevOps y buenas prácticas",
+    "JUNIOR":          "Junior - primer empleo formal, code reviews y trabajo en equipo",
+    "SENIOR":          "Senior - diseño de sistemas, mentoría y liderazgo técnico",
+    "CONSULTOR":       "Consultor - arquitectura empresarial, múltiples stacks y clientes",
+    "INGENIERO_IA":    "Ingeniero de IA - machine learning, deep learning y MLOps",
+    "ANALISTA_DATOS":  "Analista de Datos - SQL, ETL, dashboards y análisis de negocio",
+    "DBA":             "DBA - administración de bases de datos, tuning, backups y replicación",
+    "CALIDAD":         "Calidad (QA) - testing automatizado, pruebas funcionales y de rendimiento",
 }
 
 # Modos de aprendizaje disponibles (en español)
@@ -100,13 +112,19 @@ PASOS = {
         "mensaje": "¡Perfecto, {nombre}! Selecciona tu nivel de programación:",
         "validar": "nivel",
         "botones": [
-            {"texto": "🌱 Inicio",        "valor": "INICIO",       "descripcion": "Sin experiencia previa, primer contacto"},
-            {"texto": "🐣 Novato",        "valor": "NOVATO",       "descripcion": "Conceptos básicos y primer lenguaje"},
-            {"texto": "📚 Aprendiz",      "valor": "APRENDIZ",     "descripcion": "Estructuras de control, funciones y POO"},
-            {"texto": "🛠️ Técnico",       "valor": "TECNICO",      "descripcion": "Frameworks, bases de datos y desarrollo web/móvil"},
-            {"texto": "🎓 Tecnólogo",     "valor": "TECNOLOGO",    "descripcion": "Arquitectura de software, APIs y despliegue"},
-            {"texto": "🏗️ Ingeniero",     "valor": "INGENIERO",    "descripcion": "Sistemas distribuidos, DevOps y buenas prácticas"},
-            {"texto": "🤖 Ingeniero IA",  "valor": "INGENIERO_IA", "descripcion": "Machine learning, deep learning y MLOps"},
+            {"texto": "🌱 Inicio",         "valor": "INICIO",          "descripcion": "Sin experiencia previa, primer contacto"},
+            {"texto": "🐣 Novato",         "valor": "NOVATO",          "descripcion": "Conceptos básicos y primer lenguaje"},
+            {"texto": "📚 Aprendiz",       "valor": "APRENDIZ",        "descripcion": "Estructuras de control, funciones y POO"},
+            {"texto": "🛠️ Técnico",        "valor": "TECNICO",         "descripcion": "Frameworks, bases de datos y desarrollo web/móvil"},
+            {"texto": "🎓 Tecnólogo",      "valor": "TECNOLOGO",       "descripcion": "Arquitectura de software, APIs y despliegue"},
+            {"texto": "🏗️ Ingeniero",      "valor": "INGENIERO",       "descripcion": "Sistemas distribuidos, DevOps y buenas prácticas"},
+            {"texto": "💼 Junior",         "valor": "JUNIOR",          "descripcion": "Primer empleo formal, code reviews y trabajo en equipo"},
+            {"texto": "👑 Senior",         "valor": "SENIOR",          "descripcion": "Diseño de sistemas, mentoría y liderazgo técnico"},
+            {"texto": "🧭 Consultor",      "valor": "CONSULTOR",       "descripcion": "Arquitectura empresarial, múltiples stacks y clientes"},
+            {"texto": "🤖 Ingeniero IA",   "valor": "INGENIERO_IA",    "descripcion": "Machine learning, deep learning y MLOps"},
+            {"texto": "📊 Analista Datos", "valor": "ANALISTA_DATOS",  "descripcion": "SQL, ETL, dashboards y análisis de negocio"},
+            {"texto": "🗄️ DBA",            "valor": "DBA",             "descripcion": "Administración de BD, tuning, backups y replicación"},
+            {"texto": "✅ Calidad (QA)",   "valor": "CALIDAD",         "descripcion": "Testing automatizado, pruebas funcionales y de rendimiento"},
         ],
         "campo": "student_level",
     },
@@ -231,9 +249,26 @@ def validar_nombre(respuesta):
 
 def validar_nivel(respuesta):
     """Valida el nivel de programación del estudiante."""
+    # Mensaje de error dinamico basado en la lista real de NIVELES
+    nombres_nivel = {
+        "INICIO": "Inicio",
+        "NOVATO": "Novato",
+        "APRENDIZ": "Aprendiz",
+        "TECNICO": "Técnico",
+        "TECNOLOGO": "Tecnólogo",
+        "INGENIERO": "Ingeniero",
+        "JUNIOR": "Junior",
+        "SENIOR": "Senior",
+        "CONSULTOR": "Consultor",
+        "INGENIERO_IA": "Ingeniero de IA",
+        "ANALISTA_DATOS": "Analista de Datos",
+        "DBA": "DBA",
+        "CALIDAD": "Calidad (QA)",
+    }
+    lista_legible = ", ".join(nombres_nivel.get(n, n) for n in NIVELES)
     MENSAJE = (
-        "Por favor, elige un nivel válido: Inicio, Novato, Aprendiz, Técnico, "
-        "Tecnólogo, Ingeniero o Ingeniero de IA. Si estás empezando, elige Inicio."
+        f"Por favor, elige un nivel válido: {lista_legible}. "
+        "Si estás empezando, elige Inicio."
     )
     if not respuesta:
         return False, MENSAJE
@@ -271,6 +306,17 @@ def validar_nivel(respuesta):
         "DEEP LEARNING": "INGENIERO_IA",
         "TECNICO": "TECNICO",
         "TECNOLOGO": "TECNOLOGO",
+        "JR": "JUNIOR",
+        "JR.": "JUNIOR",
+        "SR": "SENIOR",
+        "SR.": "SENIOR",
+        "QA": "CALIDAD",
+        "TESTER": "CALIDAD",
+        "ANALISTA": "ANALISTA_DATOS",
+        "DATOS": "ANALISTA_DATOS",
+        "ADMINISTRADOR_BD": "DBA",
+        "ADMINISTRADOR DE BD": "DBA",
+        "INGENIERO_DE_DATOS": "ANALISTA_DATOS",
     }
     if sin_acentos_normalizado in alias:
         return True, alias[sin_acentos_normalizado]
