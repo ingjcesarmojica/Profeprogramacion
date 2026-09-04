@@ -237,12 +237,22 @@ NIVELES_DESCRIPCION_PROG = {
 
 
 async def generate_edge_tts(text, voice=None, rate=None):
-    """Genera audio con edge-tts. Voz y velocidad configurables."""
+    """Genera audio con edge-tts. Voz y velocidad configurables.
+
+    El texto se limpia antes (markdown, emojis, simbolos) para que el
+    avatar lea con buena prosodia y no diga "asterisco asterisco" ni
+    los nombres de los emojis.
+    """
     if voice is None:
         voice = TTS_VOICE
     if rate is None:
         rate = TTS_RATE
-    communicate = edge_tts.Communicate(text, voice, rate=rate)
+    # Limpiar el texto de markdown, emojis y simbolos que el TTS leeria
+    # literalmente.
+    clean_text = clean_text_for_tts(text)
+    if not clean_text:
+        return ""
+    communicate = edge_tts.Communicate(clean_text, voice, rate=rate)
     tmp_path = os.path.join(os.path.dirname(__file__), "tmp_audio.mp3")
     await communicate.save(tmp_path)
     with open(tmp_path, "rb") as f:
@@ -252,6 +262,135 @@ async def generate_edge_tts(text, voice=None, rate=None):
     except OSError:
         pass
     return base64.b64encode(audio_data).decode("utf-8")
+
+
+# ── Limpieza de texto para TTS ─────────────────────────────────────
+# Cuando el LLM devuelve markdown (``` ```, **, *, #, emojis, etc.),
+# el TTS leeria literalmente esos simbolos, lo cual suena terrible.
+# Esta funcion los elimina y deja un texto natural para que el avatar
+# lo lea con buena prosodia, acentos y pausas.
+
+import re as _re
+
+# Emojis mas comunes en el contenido del tutor. Se mapean a una palabra
+# hablada o se eliminan si no tienen un equivalente natural.
+_EMOJI_MAP = {
+    "\U0001f331": "inicio",           # 🌱
+    "\U0001f423": "novato",           # 🐣
+    "\U0001f4da": "aprendiz",         # 📚
+    "\U0001f6e0": "técnico",          # 🛠
+    "\U0001f393": "tecnólogo",        # 🎓
+    "\U0001f3d7": "ingeniero",        # 🏗
+    "\U0001f4bc": "junior",           # 💼
+    "\U0001f451": "senior",           # 👑
+    "\U0001f916": "robot",            # 🤖
+    "\U0001f4ca": "analista de datos",  # 📊
+    "\u2705":     "ok",                # ✅
+}
+
+
+def clean_text_for_tts(text):
+    """Convierte texto markdown/LLM en texto natural para TTS.
+
+    Limpia de forma agresiva todo lo que el avatar no deberia leer:
+    - Bloques de codigo: se leen como "Aqui va un ejemplo de codigo en
+      <lenguaje>: ..." seguido del codigo limpio.
+    - Negritas (**x**), cursivas (*x*, _x_): se quitan los marcadores.
+    - Headers (#, ##, ###): se quita el prefijo.
+    - Blockquotes (>, >>): se quitan.
+    - Listas (-, *, +, 1.): se mantiene solo el contenido.
+    - Links markdown [texto](url): se queda solo el texto.
+    - URLs planas (http://...): se eliminan.
+    - Codigo en linea `x`: se queda solo el texto.
+    - Emojis: se mapean a palabras cuando aplica; el resto se elimina.
+    - Simbolos sueltos problematicos (|, <, >, ~, \\, ->, =>): se limpian.
+    - Multiples espacios/saltos: se normalizan a uno solo.
+    """
+    if not text:
+        return ""
+
+    s = text
+
+    # 1. Bloques de codigo markdown: ```lenguaje\ncodigo\n```
+    def _replace_code_block(m):
+        lang = m.group(1).strip()
+        code = m.group(2).strip()
+        if not code:
+            return ""
+        prefix = ""
+        if lang and lang.lower() not in ("plain", "text", ""):
+            prefix = f"Aquí va un ejemplo de código en {lang}. "
+        code_clean = code.replace("```", "").replace("`", "")
+        # Leemos el codigo linea por linea. Quitamos el "#" inicial
+        # de los comentarios para que el TTS no diga "numeral", sino
+        # simplemente lea el comentario como una oracion normal.
+        code_lines = []
+        for line in code_clean.split("\n"):
+            stripped = line.lstrip()
+            if stripped.startswith("#") and not stripped.startswith("#!"):
+                # Reemplazamos el primer "#" y los siguientes espacios
+                # por nada, dejando el texto del comentario limpio.
+                line = _re.sub(r"^(\s*)#\s?", r"\1", line)
+            code_lines.append(line)
+        return f" {prefix}{'. '.join(code_lines)}. "
+
+    s = _re.sub(r"```(\w*)\n?(.*?)```", _replace_code_block, s, flags=_re.DOTALL)
+
+    # 2. Codigo en linea: `texto` -> texto
+    s = _re.sub(r"`([^`]+)`", r"\1", s)
+
+    # 3. Links markdown: [texto](url) -> texto
+    s = _re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
+
+    # 4. Negritas y cursivas: **x**, __x__, *x*, _x_ -> x
+    s = _re.sub(r"\*\*(.+?)\*\*", r"\1", s)
+    s = _re.sub(r"__(.+?)__", r"\1", s)
+    # Cursivas: solo cuando no estan pegadas a una palabra (para no
+    # romper "es_CO", "no_AI", etc.)
+    s = _re.sub(r"(?<![A-Za-z0-9])\*([^*\n]+?)\*(?![A-Za-z0-9])", r"\1", s)
+    s = _re.sub(r"(?<![A-Za-z0-9])_([^_\n]+?)_(?![A-Za-z0-9])", r"\1", s)
+
+    # 5. Headers (#, ##, ###): quitar prefijo
+    s = _re.sub(r"^#{1,6}\s+", "", s, flags=_re.MULTILINE)
+
+    # 6. Blockquotes (>, >>): quitar
+    s = _re.sub(r"^\s*>\s?", "", s, flags=_re.MULTILINE)
+
+    # 7. Listas: -, *, +, numeros con punto -> mantener contenido
+    s = _re.sub(r"^\s*[-*+]\s+", "", s, flags=_re.MULTILINE)
+    s = _re.sub(r"^\s*\d+\.\s+", "", s, flags=_re.MULTILINE)
+
+    # 8. URLs planas: http://... o https://... -> eliminar
+    s = _re.sub(r"https?://\S+", "", s)
+
+    # 9. Emojis: mapear a palabras o eliminar
+    def _replace_emoji(m):
+        ch = m.group(0)
+        mapped = _EMOJI_MAP.get(ch)
+        if mapped is None:
+            return " "   # emoji desconocido: eliminar
+        return f" {mapped} " if mapped else " "
+
+    s = _re.sub(
+        r"[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F000-\U0001F2FF]",
+        _replace_emoji,
+        s,
+    )
+
+    # 10. Simbolos sueltos problematicos para TTS
+    s = s.replace("|", " ").replace("\\", " ").replace("~", " ")
+    s = _re.sub(r"<[^>]+>", " ", s)   # etiquetas HTML sueltas
+    s = s.replace("=>", " entonces ").replace("->", " entonces ")
+
+    # 11. Multiples espacios o saltos -> uno solo
+    s = _re.sub(r"[ \t]+", " ", s)
+    s = _re.sub(r"\n{2,}", ". ", s)
+    s = _re.sub(r"\n", " ", s)
+
+    # 12. Limpiar espacios al inicio/final
+    s = s.strip()
+
+    return s
 
 
 def get_rag_context(user_message):
@@ -567,11 +706,13 @@ def speak_text():
         })
     except Exception as e:
         app.logger.error(f"edge-tts error: {e}")
+        # Tambien limpiamos el texto para el fallback del navegador
+        # (SpeechSynthesisUtterance) para que no lea los asteriscos.
         return jsonify({
             "audioContent": None,
             "audioUrl": None,
             "useBrowserTTS": True,
-            "text": text,
+            "text": clean_text_for_tts(text),
             "error": str(e),
         })
 

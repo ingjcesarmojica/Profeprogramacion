@@ -345,8 +345,11 @@
                 const res = await fetch("/api/speak", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: text }) });
                 const data = await res.json();
                 if (data.useBrowserTTS) {
-                    const u = new SpeechSynthesisUtterance(text);
-                    u.lang = "en-US";
+                    // Fallback del navegador: usar el texto limpio que
+                    // devuelve el backend (sin markdown/emojis).
+                    const u = new SpeechSynthesisUtterance(data.text || text);
+                    u.lang = "es-ES";
+                    u.rate = 1.1;
                     window.speechSynthesis.speak(u);
                 } else if (data.audioUrl) {
                     const audio = new Audio(data.audioUrl);
