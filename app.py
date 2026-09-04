@@ -391,22 +391,38 @@ def get_llm_response(user_message, student_data, modo_actual=""):
 
 
 def get_llm_stream(user_message, student_data, modo_actual=""):
-    """Yield el stream del LLM (OpenRouter -> Gemini -> fallback)."""
-    any_piece = False
+    """Yield el stream del LLM (OpenRouter -> Gemini -> fallback).
+
+    Si un proveedor esta configurado pero no produce ninguna pieza (falla de
+    conexion, error HTTP, stream vacio), se intenta automaticamente con el
+    siguiente proveedor antes de rendirse.
+    """
+    # 1) Intentar OpenRouter primero
     if OPENROUTER_CONFIGURED:
-        for piece in openrouter_stream(user_message, student_data, modo_actual):
-            any_piece = True
-            yield piece
-        if any_piece:
-            return
+        pieces = []
+        try:
+            for piece in openrouter_stream(user_message, student_data, modo_actual):
+                pieces.append(piece)
+                yield piece
+        except Exception as e:
+            app.logger.error(f"OpenRouter stream fallo: {e}")
+        if pieces:
+            return  # OpenRouter entrego contenido, no hay que fallback
+
+    # 2) Fallback a Gemini
     if GEMINI_CONFIGURED and gemini_model is not None:
-        any_piece = False
-        for piece in gemini_stream(user_message, student_data, modo_actual):
-            any_piece = True
-            yield piece
-        if any_piece:
-            return
-    yield "Disculpa, estoy teniendo problemas de conexión ahora mismo. Por favor, inténtalo de nuevo en un momento."
+        pieces = []
+        try:
+            for piece in gemini_stream(user_message, student_data, modo_actual):
+                pieces.append(piece)
+                yield piece
+        except Exception as e:
+            app.logger.error(f"Gemini stream fallo: {e}")
+        if pieces:
+            return  # Gemini entrego contenido
+
+    # 3) Mensaje de error si nada funciono
+    yield "Disculpa, estoy teniendo problemas de conexion ahora mismo. Por favor, intententalo de nuevo en un momento."
 
 
 # ── Gestin de sesin del estudiante ───────────────────────────────────
@@ -728,23 +744,22 @@ def handle_step(paso_actual, user_message, student):
 
 # ── Endpoint de streaming (SSE) ──────────────────────────────────────
 @app.route("/api/chat/stream", methods=["POST"])
-@stream_with_context
 def chat_stream():
     """Stream de la respuesta del LLM usando Server-Sent Events.
 
     Cada chunk que llega del LLM se envia como un evento SSE 'data: <json>'.
     Al terminar se envia un evento final con done=true.
     """
-    try:
-        payload = request.json or {}
-        message = payload.get("message", "")
-        if not message:
-            yield "data: " + json.dumps({"error": "No message"}) + "\n\n"
-            return
-        student = get_student_state()
-        modo = student.get("modo_actual") or "conceptos"
+    def event_stream():
+        try:
+            payload = request.json or {}
+            message = payload.get("message", "")
+            if not message:
+                yield "data: " + json.dumps({"error": "No message"}) + "\n\n"
+                return
+            student = get_student_state()
+            modo = student.get("modo_actual") or "conceptos"
 
-        def event_stream():
             # Primero: hint de paso (in_session)
             yield "data: " + json.dumps({"event": "start", "paso": "in_session"}) + "\n\n"
             full = []
@@ -753,11 +768,11 @@ def chat_stream():
                 yield "data: " + json.dumps({"event": "token", "delta": piece}) + "\n\n"
             final_text = "".join(full)
             yield "data: " + json.dumps({"event": "done", "text": final_text}) + "\n\n"
+        except Exception as e:
+            app.logger.error(f"chat_stream error: {e}")
+            yield "data: " + json.dumps({"error": str(e)}) + "\n\n"
 
-        return Response(event_stream(), mimetype="text/event-stream")
-    except Exception as e:
-        app.logger.error(f"chat_stream error: {e}")
-        return jsonify({"error": str(e)}), 500
+    return Response(stream_with_context(event_stream)(), mimetype="text/event-stream")
 
 
 # ── Endpoints auxiliares ─────────────────────────────────────────────

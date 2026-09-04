@@ -108,7 +108,9 @@
                     buffer += decoder.decode(value, { stream: true });
                     // Procesar eventos SSE: separar por \n\n
                     const events = buffer.split(/\r?\n\r?\n/);
-                    buffer = events.pop() || //;
+                    // El ultimo elemento puede ser un evento parcial (sin \n\n final).
+                    // Lo dejamos en el buffer para concatenarlo con el siguiente chunk.
+                    buffer = events.pop() || "";
                     for (const evt of events) {
                         const line = evt.split(/\r?\n/).find(l => l.startsWith("data: "));
                         if (!line) continue;
