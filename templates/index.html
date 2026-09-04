@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. James - English AI Tutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: "Inter", sans-serif; background: #0a1929; min-height: 100vh; display: flex; justify-content: center; align-items: center; color: #ffffff; }
+        .app-container { width: 380px; height: 720px; background: #0a1929; border: 1px solid #1e3a5f; border-radius: 30px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
+        .header { text-align: center; padding: 20px 20px 10px; flex-shrink: 0; }
+        .logo { font-size: 18px; font-weight: 700; color: #64b5f6; margin-bottom: 15px; }
+        .profile { text-align: center; position: relative; }
+        .avatar-container { width: 90px; height: 90px; margin: 0 auto 10px; position: relative; }
+        .avatar { width: 100%; height: 100%; border-radius: 50%; border: 3px solid #64b5f6; background: linear-gradient(135deg, #1e3a5f 0%, #0a1929 100%); display: flex; align-items: center; justify-content: center; font-size: 48px; position: relative; z-index: 2; }
+        .online-badge { position: absolute; top: 5px; right: 5px; background: #4caf50; color: #fff; font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 8px; z-index: 3; border: 2px solid #0a1929; }
+        .teacher-name { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
+        .teacher-title { font-size: 12px; color: #90caf9; margin-bottom: 8px; }
+        .level-badge { display: inline-block; background: #1e3a5f; color: #64b5f6; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .messages { flex: 1; overflow-y: auto; padding: 15px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .messages::-webkit-scrollbar { width: 4px; }
+        .messages::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 2px; }
+        .message { padding: 10px 14px; border-radius: 18px; max-width: 80%; word-wrap: break-word; font-size: 14px; line-height: 1.4; position: relative; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .message.bot { background: #1e3a5f; color: #ffffff; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message.user { background: #1976d2; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .message .speak-btn { position: absolute; right: -28px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; }
+        .message .speak-btn:hover { opacity: 1; }
+        .buttons-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; align-self: flex-start; max-width: 90%; }
+        .option-btn { background: #1976d2; color: #fff; border: none; padding: 8px 14px; border-radius: 16px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        .option-btn:hover { background: #1565c0; }
+        .option-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+        .input-area { padding: 15px 20px; background: #0a1929; border-top: 1px solid #1e3a5f; display: flex; gap: 8px; flex-shrink: 0; }
+        .input-area input { flex: 1; background: #1e3a5f; border: 1px solid #2c5282; border-radius: 20px; padding: 10px 16px; color: #fff; font-size: 14px; outline: none; }
+        .input-area input::placeholder { color: #90caf9; }
+        .input-area button { background: #1976d2; border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .input-area button:hover { background: #1565c0; }
+        .typing { display: inline-flex; gap: 4px; padding: 14px 18px; }
+        .typing span { width: 6px; height: 6px; background: #90caf9; border-radius: 50%; animation: bounce 1.4s infinite; }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+        .mode-indicator { background: #1e3a5f; padding: 6px 12px; border-radius: 12px; font-size: 11px; color: #64b5f6; display: inline-block; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">EnglishAI Tutor</div>
+            <div class="profile">
+                <div class="avatar-container">
+                    <div class="avatar">👨‍🏫</div>
+                    <div class="online-badge">ONLINE</div>
+                </div>
+                <div class="teacher-name">Mr. James</div>
+                <div class="teacher-title">Your English AI Tutor</div>
+                <div class="level-badge" id="levelBadge">Level: A1</div>
+            </div>
+        </div>
+        <div class="messages" id="chatMessages"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type your message in English..." autocomplete="off">
+            <button id="sendBtn" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+    <script>
+        const messagesEl = document.getElementById("chatMessages");
+        const inputEl = document.getElementById("userInput");
+        const levelBadge = document.getElementById("levelBadge");
+        let currentAudio = null;
+        let isProcessing = false;
+
+        inputEl.addEventListener("keypress", (e) => { if (e.key === "Enter" && !isProcessing) sendMessage(); });
+
+        async function sendMessage() {
+            const text = inputEl.value.trim();
+            if (!text || isProcessing) return;
+            isProcessing = true;
+            inputEl.value = "";
+            addMessage(text, "user");
+            showTyping();
+            try {
+                const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+                const data = await res.json();
+                hideTyping();
+                if (data.message) addMessage(data.message, "bot", data.botones);
+                if (data.paso) updateLevelBadge(data.paso);
+            } catch (e) {
+                hideTyping();
+                addMessage("Sorry, connection error. Please try again.", "bot");
+            }
+            isProcessing = false;
+        }
+
+        async function sendAction(action, texto) {
+            if (isProcessing) return;
+            isProcessing = true;
+            addMessage(texto, "user");
+            showTyping();
+            try {
+                const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: action }) });
+                const data = await res.json();
+                hideTyping();
+                if (data.message) addMessage(data.message, "bot", data.botones);
+                if (data.paso) updateLevelBadge(data.paso);
+            } catch (e) {
+                hideTyping();
+                addMessage("Sorry, error. Try again.", "bot");
+            }
+            isProcessing = false;
+        }
+
+        function addMessage(text, sender, botones) {
+            const msg = document.createElement("div");
+            msg.className = `message ${sender}`;
+            const span = document.createElement("span");
+            span.textContent = text;
+            msg.appendChild(span);
+            if (sender === "bot") {
+                const speakBtn = document.createElement("button");
+                speakBtn.className = "speak-btn";
+                speakBtn.textContent = "🔊";
+                speakBtn.onclick = () => speakText(text);
+                msg.appendChild(speakBtn);
+            }
+            messagesEl.appendChild(msg);
+            if (botones && botones.length && sender === "bot") {
+                const cont = document.createElement("div");
+                cont.className = "buttons-container";
+                botones.forEach(b => {
+                    const btn = document.createElement("button");
+                    btn.className = "option-btn";
+                    btn.textContent = b.texto;
+                    btn.title = b.descripcion || "";
+                    btn.onclick = () => { sendAction(b.valor, b.texto); disableBtns(cont); };
+                    cont.appendChild(btn);
+                });
+                messagesEl.appendChild(cont);
+            }
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function disableBtns(c) { c.querySelectorAll(".option-btn").forEach(b => b.classList.add("disabled")); }
+
+        function showTyping() {
+            const t = document.createElement("div");
+            t.className = "message bot typing";
+            t.id = "typingIndicator";
+            t.innerHTML = "<span></span><span></span><span></span>";
+            messagesEl.appendChild(t);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function hideTyping() { const t = document.getElementById("typingIndicator"); if (t) t.remove(); }
+
+        async function speakText(text) {
+            try {
+                if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+                const res = await fetch("/api/speak", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: text }) });
+                const data = await res.json();
+                if (data.useBrowserTTS) {
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = "en-US";
+                    window.speechSynthesis.speak(u);
+                } else if (data.audioUrl) {
+                    const audio = new Audio(data.audioUrl);
+                    currentAudio = audio;
+                    audio.play();
+                }
+            } catch (e) { console.error("TTS error:", e); }
+        }
+
+        function updateLevelBadge(paso) {
+            if (paso === "in_session") {
+                const nivel = sessionStorage.getItem("nivel") || "A1";
+                levelBadge.textContent = `Level: ${nivel}`;
+            }
+        }
+
+        // Iniciar conversacin al cargar
+        window.addEventListener("load", () => { sendAction("init", ""); });
+    </script>
+</body>
+</html>
