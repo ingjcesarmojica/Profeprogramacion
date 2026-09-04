@@ -1,8 +1,8 @@
-# CodeAI Tutor - Profesor Byte
+# CodeAI Tutor - Ing. MOJICA
 
 > Tutor de Programación con IA en español, disponible 24/7. Enseña desde cero absoluto hasta Ingeniería de IA.
 
-Un agente profesor de programación construido con Flask, Pinecone RAG, Supabase, edge-tts y OpenRouter/Gemini. **Profesor Byte** enseña programación a hispanohablantes con clases personalizadas, ejercicios prácticos, proyectos guiados, quizzes interactivos y soporte para los 7 niveles de aprendizaje (desde principiantes sin experiencia hasta ingenieros especializados en IA).
+Un agente profesor de programación construido con Flask, Pinecone RAG, Supabase, edge-tts y OpenRouter/Gemini. **Ing. MOJICA** enseña programación a hispanohablantes con clases personalizadas, ejercicios prácticos, proyectos guiados, quizzes interactivos y soporte para los 7 niveles de aprendizaje (desde principiantes sin experiencia hasta ingenieros especializados en IA).
 
 ## Features
 
@@ -120,11 +120,11 @@ Esto sube `conocimiento_programacion.md` a Pinecone para alimentar el RAG.
 python app.py
 ```
 
-Abre http://localhost:5000 y verás al **Profesor Byte** listo para enseñar.
+Abre http://localhost:5000 y verás al **Ing. MOJICA** listo para enseñar.
 
 ## Flujo de la Conversación
 
-1. **Welcome** - El Profesor Byte saluda al estudiante
+1. **Welcome** - El Ing. MOJICA saluda al estudiante
 2. **Ask name** - El estudiante proporciona su nombre
 3. **Ask level** - Elige uno de los 7 niveles (INICIO → INGENIERO_IA)
 4. **Ask goal** - ¿Cuál es tu objetivo? (trabajo, estudios, IA, web, videojuegos, etc.)
@@ -177,5 +177,5 @@ MIT
 
 ## Créditos
 
-Construido para hispanohablantes que quieren aprender programación. El Profesor Byte es paciente, motivador y eficaz: enseña desde cero hasta Ingeniería de IA con clases personalizadas las 24 horas, los 7 días de la semana.
+Construido para hispanohablantes que quieren aprender programación. El Ing. MOJICA es paciente, motivador y eficaz: enseña desde cero hasta Ingeniería de IA con clases personalizadas las 24 horas, los 7 días de la semana.
 
