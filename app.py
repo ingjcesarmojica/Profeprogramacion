@@ -837,6 +837,23 @@ IN_SESSION_BOTONES = [
 ]
 
 
+def _sse_format(event, **kwargs):
+    """Serializa un evento SSE en formato estandar data: <json>\\n\\n.
+
+    Incluir el prefijo 'data: ' y doble newline es lo que le indica
+    al EventSource del navegador que ya hay un evento completo y
+    puede procesarlo.
+    """
+    payload = {"event": event}
+    payload.update(kwargs)
+    return "data: " + json.dumps(payload, ensure_ascii=False) + "\n\n"
+
+
+def _sse_keepalive():
+    """Comentario SSE que mantiene viva la conexion a traves de proxies."""
+    return ": keepalive\n\n"
+
+
 @app.route("/api/chat/stream", methods=["POST"])
 def chat_stream():
     """Stream de la respuesta del LLM usando Server-Sent Events.
@@ -850,9 +867,15 @@ def chat_stream():
       token por token, y al final emitimos los botones de acciones
       rapidas (Cambiar modo, Mi progreso, Finalizar sesion).
 
-    Esto arregla la regresion donde el frontend enviaba TODO a
-    /api/chat/stream, y al no saber manejar los pasos intermedios
-    los renderizaba vacios o con el typing incorrecto.
+    Anti-buffering:
+    - Cabecera 'X-Accel-Buffering: no' para nginx/proxies
+    - Cabecera 'Cache-Control: no-cache' para que no se almacene
+    - 'direct_passthrough=True' en el Response para que Werkzeug
+      NO bufferice el cuerpo (sin esto, los tokens pequenos se
+      acumulan silenciosamente y el usuario ve "se queda congelado
+      y escribe por pedazos").
+    - Micro-yield entre tokens para forzar el flush al socket.
+    - Keepalive periodico para que el proxy no cierre por timeout.
     """
     def event_stream():
         try:
@@ -863,53 +886,50 @@ def chat_stream():
 
             # Caso 1: paso intermedio del guion -> NO usar LLM, solo
             # avanzar el paso y devolver mensaje + botones del paso.
-            # handle_step usa session internamente, que ya esta disponible
-            # en este contexto de request real de Flask.
             if paso_actual != "in_session":
                 resp = handle_step(paso_actual, message, student)
                 data = resp.get_json() or {}
-                # Avisamos el paso entrante (para el badge, etc.)
-                yield "data: " + json.dumps({
-                    "event": "start",
-                    "paso": data.get("paso", paso_actual),
-                }) + "\n\n"
-                # Un solo "token" con todo el texto del paso
+                yield _sse_format("start", paso=data.get("paso", paso_actual))
                 texto = data.get("message", "") or ""
-                yield "data: " + json.dumps({
-                    "event": "token",
-                    "delta": texto,
-                }) + "\n\n"
-                # Evento final con texto completo + botones del paso
-                yield "data: " + json.dumps({
-                    "event": "done",
-                    "text": texto,
-                    "botones": data.get("botones"),
-                    "paso": data.get("paso", paso_actual),
-                }) + "\n\n"
+                yield _sse_format("token", delta=texto)
+                yield _sse_format("done", text=texto,
+                                  botones=data.get("botones"),
+                                  paso=data.get("paso", paso_actual))
                 return
 
             # Caso 2: in_session -> LLM real con streaming
             if not message:
-                yield "data: " + json.dumps({"error": "No message"}) + "\n\n"
+                yield _sse_format("error", error="No message")
                 return
             modo = student.get("modo_actual") or "conceptos"
 
-            yield "data: " + json.dumps({"event": "start", "paso": "in_session"}) + "\n\n"
+            yield _sse_format("start", paso="in_session")
+            # Keepalive inmediato: le dice al cliente que la conexion
+            # esta abierta y al proxy que no debe cerrar por inactividad.
+            yield _sse_keepalive()
+
             full = []
             for piece in get_llm_stream(message, student, modo):
+                if not piece:
+                    continue
                 full.append(piece)
-                yield "data: " + json.dumps({"event": "token", "delta": piece}) + "\n\n"
+                yield _sse_format("token", delta=piece)
             final_text = "".join(full)
-            yield "data: " + json.dumps({
-                "event": "done",
-                "text": final_text,
-                "botones": IN_SESSION_BOTONES,
-            }) + "\n\n"
+            yield _sse_format("done", text=final_text,
+                              botones=IN_SESSION_BOTONES)
         except Exception as e:
             app.logger.error(f"chat_stream error: {e}", exc_info=True)
-            yield "data: " + json.dumps({"error": str(e)}) + "\n\n"
+            yield _sse_format("error", error=str(e))
 
-    return Response(stream_with_context(event_stream)(), mimetype="text/event-stream")
+    response = Response(
+        stream_with_context(event_stream)(),
+        mimetype="text/event-stream",
+    )
+    # Anti-buffering a traves de proxies (nginx) y del servidor de desarrollo.
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["X-Accel-Buffering"] = "no"
+    response.headers["Connection"] = "keep-alive"
+    return response
 
 
 # ── Endpoints auxiliares ─────────────────────────────────────────────

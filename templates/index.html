@@ -100,6 +100,26 @@
 
             let firstTokenSeen = false;
             let fullText = "";
+            // Timeout global: si el stream no termina en 60s (o no llega
+            // ningun token en 15s), lo abortamos y mostramos un mensaje
+            // de error. Esto evita que el usuario vea la respuesta
+            // "congelada para siempre" si el LLM se queda colgado.
+            let streamAborted = false;
+            const STREAM_TIMEOUT_MS = 60000;
+            const FIRST_TOKEN_TIMEOUT_MS = 15000;
+            const streamTimer = setTimeout(() => {
+                streamAborted = true;
+                if (typingDots.parentNode) typingDots.remove();
+                span.textContent = "Disculpa, la respuesta tardó demasiado. Por favor, inténtalo de nuevo.";
+                console.warn("Stream timeout global");
+            }, STREAM_TIMEOUT_MS);
+            const firstTokenTimer = setTimeout(() => {
+                if (!firstTokenSeen) {
+                    if (typingDots.parentNode) typingDots.remove();
+                    span.textContent = "Disculpa, el profesor está tardando en responder. Inténtalo de nuevo.";
+                    console.warn("First token timeout");
+                }
+            }, FIRST_TOKEN_TIMEOUT_MS);
             try {
                 const res = await fetch("/api/chat/stream", {
                     method: "POST",
@@ -112,6 +132,42 @@
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder("utf-8");
                 let buffer = "";
+                // Cuando llega un chunk grande (ej. 200 chars de golpe), lo
+                // animamos letra por letra para que la escritura se sienta
+                // fluida y no aparezca "todo de una".
+                const animateDelta = (delta) => {
+                    if (!firstTokenSeen) {
+                        firstTokenSeen = true;
+                        if (typingDots.parentNode) typingDots.remove();
+                        // Limpiar el timeout del primer token: ya llego el primero.
+                        clearTimeout(firstTokenTimer);
+                    }
+                    // Para chunks pequenos (<=6 chars) los pintamos directo.
+                    // Para chunks grandes, los partimos en grupos de 3-5 chars
+                    // y los pintamos con un pequeño delay entre cada grupo.
+                    const CHUNK_SIZE = 4;
+                    if (delta.length <= CHUNK_SIZE) {
+                        fullText += delta;
+                        span.textContent = fullText;
+                        messagesEl.scrollTop = messagesEl.scrollHeight;
+                        return;
+                    }
+                    // Animar progresivamente con requestAnimationFrame para
+                    // que se vea como escritura natural.
+                    let i = 0;
+                    const step = () => {
+                        if (i >= delta.length) return;
+                        const slice = delta.slice(i, i + CHUNK_SIZE);
+                        fullText += slice;
+                        span.textContent = fullText;
+                        messagesEl.scrollTop = messagesEl.scrollHeight;
+                        i += CHUNK_SIZE;
+                        // ~16ms entre cada grupo = ~60fps, suficiente para
+                        // que el usuario vea la animacion de escribir.
+                        setTimeout(step, 18);
+                    };
+                    step();
+                };
                 while (true) {
                     const { value, done } = await reader.read();
                     if (done) break;
@@ -122,6 +178,8 @@
                     // Lo dejamos en el buffer para concatenarlo con el siguiente chunk.
                     buffer = events.pop() || "";
                     for (const evt of events) {
+                        // Ignorar comentarios SSE (keepalive: ": keepalive")
+                        if (!evt.trim() || evt.startsWith(":")) continue;
                         const line = evt.split(/\r?\n/).find(l => l.startsWith("data: "));
                         if (!line) continue;
                         const payload = line.slice(6).trim();
@@ -129,17 +187,13 @@
                         try {
                             const obj = JSON.parse(payload);
                             if (obj.event === "token" && obj.delta) {
-                                if (!firstTokenSeen) {
-                                    firstTokenSeen = true;
-                                    // Quitar los 3 puntitos animados al recibir el primer token real
-                                    if (typingDots.parentNode) typingDots.remove();
-                                }
-                                fullText += obj.delta;
-                                span.textContent = fullText;
-                                messagesEl.scrollTop = messagesEl.scrollHeight;
+                                animateDelta(obj.delta);
                             } else if (obj.event === "done") {
                                 firstTokenSeen = true;
                                 if (typingDots.parentNode) typingDots.remove();
+                                // Stream completo: limpiar todos los timers.
+                                clearTimeout(streamTimer);
+                                clearTimeout(firstTokenTimer);
                                 fullText = obj.text || fullText;
                                 span.textContent = fullText;
                                 // Renderizar botones del paso (niveles, modos, acciones rapidas)
@@ -165,6 +219,8 @@
                                 if (obj.paso) updateLevelBadge(obj.paso);
                             } else if (obj.error) {
                                 if (typingDots.parentNode) typingDots.remove();
+                                clearTimeout(streamTimer);
+                                clearTimeout(firstTokenTimer);
                                 span.textContent = "Error: " + obj.error;
                             }
                         } catch (e) {
@@ -185,17 +241,23 @@
                     });
                     const d2 = await r2.json();
                     if (typingDots.parentNode) typingDots.remove();
+                    clearTimeout(streamTimer);
+                    clearTimeout(firstTokenTimer);
                     span.textContent = d2.message || "";
                     fullText = d2.message || "";
                     speakBtn.onclick = () => speakText(fullText);
                     if (d2.paso) updateLevelBadge(d2.paso);
                 } catch (e2) {
                     if (typingDots.parentNode) typingDots.remove();
+                    clearTimeout(streamTimer);
+                    clearTimeout(firstTokenTimer);
                     span.textContent = "Error de conexión. Por favor, inténtalo de nuevo.";
                 }
             } finally {
                 // Limpiar el typingDots si por alguna razon quedo visible
                 if (typingDots.parentNode) typingDots.remove();
+                clearTimeout(streamTimer);
+                clearTimeout(firstTokenTimer);
             }
         }
 
