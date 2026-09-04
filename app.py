@@ -71,7 +71,8 @@ OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "xiaomi/mimo-v2.5").strip()
 OPENROUTER_CONFIGURED = bool(OPENROUTER_API_KEY)
 
-TTS_VOICE = os.environ.get("TTS_VOICE", "es-MX-JorgeNeural")
+TTS_VOICE = os.environ.get("TTS_VOICE", "es-CO-GonzaloNeural")
+TTS_RATE = os.environ.get("TTS_RATE", "+10%")  # Velocidad TTS: -50% a +100%
 
 
 SYSTEM_PROMPT_BASE = """Eres el Ing. MOJICA, un profesor de programación amable, paciente y muy didáctico. Tu misión es enseñar programación a hispanohablantes desde cero absoluto hasta el nivel de Ingeniero de IA.
@@ -184,16 +185,21 @@ NIVELES_DESCRIPCION_PROG = {
 }
 
 
-async def generate_edge_tts(text, voice=None):
-    """Genera audio con edge-tts y retorna base64."""
+async def generate_edge_tts(text, voice=None, rate=None):
+    """Genera audio con edge-tts. Voz y velocidad configurables."""
     if voice is None:
         voice = TTS_VOICE
-    communicate = edge_tts.Communicate(text, voice)
+    if rate is None:
+        rate = TTS_RATE
+    communicate = edge_tts.Communicate(text, voice, rate=rate)
     tmp_path = os.path.join(os.path.dirname(__file__), "tmp_audio.mp3")
     await communicate.save(tmp_path)
     with open(tmp_path, "rb") as f:
         audio_data = f.read()
-    os.remove(tmp_path)
+    try:
+        os.remove(tmp_path)
+    except OSError:
+        pass
     return base64.b64encode(audio_data).decode("utf-8")
 
 
@@ -343,19 +349,23 @@ def index():
 
 @app.route("/api/speak", methods=["POST"])
 def speak_text():
-    """Genera audio TTS en español."""
+    """Genera audio TTS en español. Acepta voz y velocidad opcionales."""
     try:
-        data = request.json
+        data = request.json or {}
         text = data.get("text", "")
+        voice = data.get("voice")
+        rate = data.get("rate")
         if not text:
             return jsonify({"error": "No text"}), 400
 
-        audio_content = asyncio.run(generate_edge_tts(text))
+        audio_content = asyncio.run(generate_edge_tts(text, voice=voice, rate=rate))
         return jsonify({
             "audioContent": audio_content,
             "audioUrl": f"data:audio/mp3;base64,{audio_content}",
             "useBrowserTTS": False,
             "engine": "edge-tts",
+            "voice": voice or TTS_VOICE,
+            "rate": rate or TTS_RATE,
         })
     except Exception as e:
         app.logger.error(f"edge-tts error: {e}")
@@ -629,10 +639,10 @@ def list_modes_endpoint():
 @app.route("/api/voices", methods=["GET"])
 def list_voices():
     voices = [
-        {"id": "es-MX-JorgeNeural", "name": "Jorge", "gender": "Male", "region": "México", "recommended": True},
-        {"id": "es-MX-DaliaNeural", "name": "Dalia", "gender": "Female", "region": "México"},
-        {"id": "es-CO-GonzaloNeural", "name": "Gonzalo", "gender": "Male", "region": "Colombia"},
+        {"id": "es-CO-GonzaloNeural", "name": "Gonzalo", "gender": "Male", "region": "Colombia", "recommended": True},
         {"id": "es-CO-SalomeNeural", "name": "Salomé", "gender": "Female", "region": "Colombia"},
+        {"id": "es-MX-JorgeNeural", "name": "Jorge", "gender": "Male", "region": "México"},
+        {"id": "es-MX-DaliaNeural", "name": "Dalia", "gender": "Female", "region": "México"},
         {"id": "es-AR-TomasNeural", "name": "Tomás", "gender": "Male", "region": "Argentina"},
         {"id": "es-AR-ElenaNeural", "name": "Elena", "gender": "Female", "region": "Argentina"},
         {"id": "es-ES-AlvaroNeural", "name": "Álvaro", "gender": "Male", "region": "España"},

@@ -549,7 +549,7 @@ Edita `.env`:
 TTS_VOICE=es-MX-JorgeNeural
 ```
 
-Voces disponibles (acento latino por defecto): `es-MX-JorgeNeural`, `es-MX-DaliaNeural`, `es-CO-GonzaloNeural`, `es-CO-SalomeNeural`, `es-AR-TomasNeural`, `es-AR-ElenaNeural`, `es-ES-AlvaroNeural`, `es-ES-ElviraNeural`.
+Voces disponibles (acento latino, joven y agil): `es-CO-GonzaloNeural` (default), `es-CO-SalomeNeural`, `es-MX-JorgeNeural`, `es-MX-DaliaNeural`, `es-AR-TomasNeural`, `es-AR-ElenaNeural`, `es-ES-AlvaroNeural`, `es-ES-ElviraNeural`. Tambien puedes ajustar la velocidad con `TTS_RATE` (default `+10%`).
 
 ### Agregar más modos de aprendizaje
 
