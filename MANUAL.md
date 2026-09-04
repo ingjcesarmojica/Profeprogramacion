@@ -1,164 +1,147 @@
-﻿# Manual de Usuario - EnglishAI Tutor (Mr. James)
+# Manual de Usuario - CodeAI Tutor (Ing. MOJICA)
 
-> Guia completa de como funciona, se instala y se usa el agente profesor de ingles.
+> Su Profe de Programación con IA en español, disponible 24/7. Enseña desde cero absoluto hasta Ingeniería de IA.
+
+Bienvenido al manual oficial del agente **CodeAI Tutor**, un profesor virtual de programación construido con Flask, Pinecone RAG, Supabase, edge-tts y OpenRouter/Gemini. Este manual explica en detalle cómo funciona, cómo instalarlo, cómo personalizarlo y cómo resolver los problemas más comunes.
 
 ---
 
 ## Tabla de Contenidos
 
-1. [Que es EnglishAI Tutor?](#1-que-es-englishai-tutor)
-2. [Caracteristicas principales](#2-caracteristicas-principales)
-3. [Arquitectura del sistema](#3-arquitectura-del-sistema)
-4. [Instalacion paso a paso](#4-instalacion-paso-a-paso)
-5. [Configuracion de servicios](#5-configuracion-de-servicios)
-6. [Como funciona el flujo conversacional](#6-como-funciona-el-flujo-conversacional)
-7. [Modos de aprendizaje](#7-modos-de-aprendizaje)
-8. [Niveles CEFR](#8-niveles-cefr)
-9. [API Reference](#9-api-reference)
-10. [Mantenimiento y operaciones](#10-mantenimiento-y-operaciones)
-11. [Personalizacion](#11-personalizacion)
-12. [Solucion de problemas](#12-solucion-de-problemas)
+1. ¿Qué es CodeAI Tutor?
+2. Características principales
+3. Arquitectura del sistema
+4. Instalación paso a paso
+5. Configuración de servicios
+6. Cómo funciona el flujo conversacional
+7. Modos de aprendizaje
+8. Los 7 niveles de programación
+9. API Reference
+10. Mantenimiento y operaciones
+11. Personalización
+12. Solución de problemas
+
+Apéndices:
+- A. Glosario de términos técnicos
+- B. Comandos útiles
+- C. Estructura de archivos
 
 ---
 
-## 1. Que es EnglishAI Tutor?
+## 1. ¿Qué es CodeAI Tutor?
 
-**EnglishAI Tutor** es un agente conversacional de inteligencia artificial diseñado para ensenar ingles a hispanohablantes de manera personalizada, 24/7.
+CodeAI Tutor es un agente profesor de programación disponible las 24 horas, los 7 días de la semana. Utiliza Inteligencia Artificial avanzada para enseñar programación a hispanohablantes en 7 niveles progresivos: **INICIO, NOVATO, APRENDIZ, TÉCNICO, TECNÓLOGO, INGENIERO e INGENIERO DE IA**.
 
-### El profesor: Mr. James
+### El profesor: Ing. MOJICA
 
-- **Nombre**: Mr. James (James Wilson)
-- **Nacionalidad**: Estadounidense (California)
-- **Especialidad**: Ensenanza de ingles como segundo idioma (ESL/EFL)
-- **Experiencia simulada**: 15 anos ensenando a hispanohablantes
-- **Idiomas**: Ingles (nativo), Espanol (fluido)
-- **Personalidad**: Pacifico, alentador, claro, adaptativo
+- **Nombre**: Ing. MOJICA (Su Profe de Programación)
+- **Idioma**: Español nativo (entiende términos técnicos en inglés)
+- **Personalidad**: Amable, paciente, motivador y didáctico
+- **Especialidad**: Programación desde cero hasta Ingeniería de IA
 
-### Filosofia pedagogica
+### Filosofía pedagógica
 
-Mr. James sigue estos principios:
+Ing. MOJICA sigue estos principios:
 
-- **Metodo socratico**: guia al estudiante para descubrir respuestas
-- **Correccion constructiva**: nunca hace sentir mal al estudiante
-- **Celebracion del progreso**: refuerza cada logro, por pequeno que sea
-- **Ejemplos contextuales**: usa situaciones relevantes para hispanohablantes
-- **Conciencia linguistica**: conoce los errores tipicos de hablantes de espanol
+1. **Cada error es una oportunidad de aprendizaje**: nunca se juzga al estudiante, se le guía.
+2. **Las analogías simples son la mejor herramienta**: una variable es una caja con etiqueta, un bucle es repetir una receta, etc.
+3. **La práctica constante es la clave**: el estudiante programa desde el primer día.
+4. **Adaptación al nivel**: el lenguaje y la profundidad se ajustan automáticamente.
+5. **Celebrar los pequeños logros**: cada paso cuenta en el camino del aprendizaje.
 
 ---
 
-## 2. Caracteristicas principales
+## 2. Características principales
 
 ### Funcionalidades del estudiante
 
-| Caracteristica | Descripcion |
-|---|---|
-| Clases personalizadas | Adaptadas al nivel CEFR (A1-C2) |
-| 5 modos de practica | Conversation, Grammar, Vocabulary, Quiz, Pronunciation |
-| 6 objetivos | Travel, Work, Studies, Exams, Entertainment, Personal |
-| Audio en ingles | TTS con voces neuronales (US, UK, AU) |
-| Seguimiento de progreso | Lecciones, vocabulario, errores |
-| Base de conocimiento | RAG con temario completo |
-| Disponibilidad 24/7 | Siempre disponible para practicar |
+- ✅ Saludo personalizado en español
+- ✅ Selección de nivel entre los 7 niveles disponibles
+- ✅ Definición de objetivo de aprendizaje (trabajo, estudios, IA, web, etc.)
+- ✅ 6 modos de aprendizaje: Conceptos, Práctica, Proyectos, Quiz, Código, IA
+- ✅ Respuestas adaptadas al nivel y al modo elegido
+- ✅ Audio TTS en español con voces neurales de Microsoft
+- ✅ Visualización de progreso (lecciones, conceptos, errores)
+- ✅ Cambio de modo en cualquier momento
+- ✅ Botones interactivos para guiar la conversación
 
-### Funcionalidades tecnicas
+### Funcionalidades técnicas
 
-| Caracteristica | Descripcion |
-|---|---|
-| Multi-LLM | OpenRouter (principal) + Gemini (fallback) |
-| RAG vectorial | Pinecone con embeddings de Gemini |
-| Base de datos | Supabase (PostgreSQL) |
-| TTS neural | edge-tts (Microsoft) |
-| Sesiones persistentes | Flask session con cookies |
-| API REST | 11 endpoints documentados |
-| Deploy-ready | Gunicorn + Procfile para Heroku |
+- ✅ API REST con Flask
+- ✅ Integración con LLM (OpenRouter por defecto, Gemini como fallback)
+- ✅ RAG (Retrieval-Augmented Generation) con Pinecone
+- ✅ Base de datos PostgreSQL en Supabase
+- ✅ Persistencia de sesiones con Flask session
+- ✅ Edge-TTS para audio de alta calidad
+- ✅ Listo para deploy en Heroku (Procfile incluido)
+- ✅ Configuración mediante variables de entorno
 
 ---
 
 ## 3. Arquitectura del sistema
 
 ```
-+----------------------------------+
-|       NAVEGADOR (Estudiante)     |
-|   index.html (Chat UI)           |
-+----------------------------------+
-              |
-              | HTTP (fetch)
-              v
-+----------------------------------+
-|       FLASK APP (app.py)         |
-|   - Rutas API REST               |
-|   - Gestion de sesiones          |
-|   - Sistema de pasos             |
-+----------------------------------+
-        |       |        |         |
-        v       v        v         v
-+--------+  +------+  +-------+  +--------+
-|edge-tts|  |  LLM |  |  RAG  |  |Supabase|
-|  (TTS) |  |(OpenR|  |(Pinec)|  |  (BD)  |
-|        |  |/Gem) |  |  one) |  |        |
-+--------+  +------+  +-------+  +--------+
+┌─────────────────────┐
+│   Navegador Web     │
+│  (templates/index)  │
+└──────────┬──────────┘
+           │ HTTP/JSON
+           ▼
+┌─────────────────────┐
+│   Flask App (app.py)│
+│  ┌───────────────┐  │
+│  │ Endpoints REST│  │
+│  └───────┬───────┘  │
+│          │          │
+│  ┌───────▼───────┐  │
+│  │ guion.py      │◄─┼──► Validación, flujo conversacional
+│  └───────┬───────┘  │
+│  ┌───────▼───────┐  │
+│  │ LLM (OpenR/G) │──┼──► OpenRouter / Gemini
+│  └───────┬───────┘  │
+│  ┌───────▼───────┐  │
+│  │ RAG (rag.py)  │──┼──► Pinecone (embeddings)
+│  └───────┬───────┘  │
+│  ┌───────▼───────┐  │
+│  │ DB (database) │──┼──► Supabase (PostgreSQL)
+│  └───────────────┘  │
+└─────────────────────┘
 ```
 
 ### Componentes principales
 
-1. **Frontend** (`templates/index.html`)
-   - Interfaz de chat tipo widget
-   - Avatar del profesor (emoji)
-   - Burbujas de conversacion
-   - Botones contextuales
-   - Boton de audio (TTS)
+- **`app.py`**: Aplicación Flask con todas las rutas y el system prompt en español.
+- **`guion.py`**: Flujo conversacional (welcome, ask_name, ask_level, ask_goal, select_mode, in_session, change_mode, ask_question, goodbye).
+- **`database.py`**: Cliente Supabase y operaciones CRUD.
+- **`rag.py`**: Integración con Pinecone para búsqueda semántica.
+- **`upload_knowledge.py`**: Script para indexar la base de conocimiento.
+- **`conocimiento_programacion.md`**: Base de conocimiento en español (currículo completo de los 7 niveles).
+- **`schema_supabase.sql`**: Schema de la base de datos con la CHECK constraint para los 7 niveles.
+- **`templates/index.html`**: UI del chat en español.
 
-2. **Backend Flask** (`app.py`)
-   - 11 endpoints REST
-   - Sistema de sesiones
-   - Manejo del flujo conversacional
-   - Construccion de prompts para LLM
-
-3. **LLM** (OpenRouter / Gemini)
-   - Genera respuestas del profesor
-   - Explica gramatica
-   - Corrige errores
-   - Mantiene la personalidad
-
-4. **RAG** (Pinecone + Gemini embeddings)
-   - Almacena conocimiento pedagogico
-   - Busca contexto relevante
-   - Enriquece las respuestas del LLM
-
-5. **Base de datos** (Supabase)
-   - Perfil del estudiante
-   - Historial de conversaciones
-   - Progreso y metricas
-   - Vocabulario aprendido
-
-6. **TTS** (edge-tts)
-   - Convierte texto a audio
-   - 7 voces en ingles disponibles
-   - Audio base64 para reproduccion
-
----
-
-## 4. Instalacion paso a paso
+PLACEHOLDER_PART2
+## 4. Instalación paso a paso
 
 ### Requisitos previos
 
-- Python 3.11+
-- pip
-- Una cuenta en cada servicio:
-  - OpenRouter (https://openrouter.ai) **o** Google AI Studio (Gemini)
-  - Pinecone (https://pinecone.io)
-  - Supabase (https://supabase.com)
+- Python 3.10 o superior
+- pip (gestor de paquetes)
+- Una cuenta en [OpenRouter](https://openrouter.ai/) o [Google AI Studio](https://aistudio.google.com/) para el LLM
+- Una cuenta en [Pinecone](https://www.pinecone.io/) para el RAG
+- Una cuenta en [Supabase](https://supabase.com/) para la base de datos
 
 ### Paso 1: Clonar o descargar el proyecto
 
 ```bash
-cd E:\AgentesMailab\AgenteIngles\agentcallpingles-main
+git clone https://github.com/ingjcesarmojica/Profeprogramacion.git
+cd Profeprogramacion
 ```
 
 ### Paso 2: Crear entorno virtual (recomendado)
 
 ```bash
 python -m venv venv
+
 # Activar:
 # Windows:
 venv\Scripts\activate
@@ -172,30 +155,27 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Dependencias instaladas:
-- Flask 3.1.1 (web framework)
-- Flask-CORS 5.0.1 (CORS)
-- edge-tts 7.2.8 (TTS)
-- google-generativeai 0.8.0 (Gemini)
-- gunicorn 23.0.0 (production server)
-- python-dotenv 1.1.0 (env vars)
-- pinecone 6.0.0 (vector DB)
-- PyPDF2 3.0.0 (PDF processing)
-- supabase 2.0.0 (database client)
-
 ### Paso 4: Configurar variables de entorno
+
+Copia el archivo de ejemplo:
 
 ```bash
 cp .env.example .env
 ```
 
-Editar `.env` con tus credenciales (ver seccion 5).
+Edita `.env` con tus claves reales (ver sección 5).
 
 ### Paso 5: Crear tablas en Supabase
 
-1. Ir a Supabase Dashboard > SQL Editor
-2. Copiar el contenido de `schema_supabase.sql`
-3. Ejecutar
+Ejecuta el SQL en `schema_supabase.sql` desde el SQL Editor de Supabase Dashboard.
+
+Si vienes de una versión anterior, actualiza la CHECK constraint:
+
+```sql
+ALTER TABLE estudiantes DROP CONSTRAINT IF EXISTS estudiantes_nivel_check;
+ALTER TABLE estudiantes ADD CONSTRAINT estudiantes_nivel_check
+  CHECK (nivel IN ('INICIO','NOVATO','APRENDIZ','TECNICO','TECNOLOGO','INGENIERO','INGENIERO_IA'));
+```
 
 ### Paso 6: Indexar conocimiento en Pinecone
 
@@ -203,7 +183,7 @@ Editar `.env` con tus credenciales (ver seccion 5).
 python upload_knowledge.py
 ```
 
-Esto sube `conocimiento_ingles.md` (~20KB) a Pinecone, creando chunks con embeddings.
+Subirá `conocimiento_programacion.md` a Pinecone para que el RAG pueda consultarlo.
 
 ### Paso 7: Ejecutar
 
@@ -211,455 +191,269 @@ Esto sube `conocimiento_ingles.md` (~20KB) a Pinecone, creando chunks con embedd
 python app.py
 ```
 
-Abrir http://localhost:5000
+Abre `http://localhost:5000` y verás a Ing. MOJICA listo para enseñarte programación.
 
 ---
 
-## 5. Configuracion de servicios
+## 5. Configuración de servicios
 
 ### Variables de entorno (`.env`)
 
 ```bash
 # --- LLM principal (obligatorio) ---
-OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
+OPENROUTER_API_KEY=tu_clave_openrouter
 OPENROUTER_MODEL=xiaomi/mimo-v2.5
 
 # --- Gemini como fallback (obligatorio) ---
-GEMINI_API_KEY=AIzaSyXXXXXXXXXXXXXXX
+GEMINI_API_KEY=tu_clave_gemini
 
 # --- Pinecone para RAG (obligatorio) ---
-PINECONE_API_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+PINECONE_API_KEY=tu_clave_pinecone
 
 # --- Supabase para base de datos (obligatorio) ---
-SUPABASE_URL=https://tuproyecto.supabase.co
-SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxx
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_KEY=tu_clave_supabase
 
 # --- TTS (opcional, default ya incluido) ---
-TTS_VOICE=en-US-GuyNeural
+TTS_VOICE=es-ES-ElviraNeural
 
 # --- Servidor (opcional) ---
 PORT=5000
 
-# --- Seguridad (obligatorio en produccion) ---
-SECRET_KEY=tu-clave-secreta-segura-aqui
+# --- Seguridad (obligatorio en producción) ---
+SECRET_KEY=tu-clave-secreta-unica
 ```
 
-### Como obtener cada API key
+### Cómo obtener cada API key
 
 #### OpenRouter
-1. Ir a https://openrouter.ai
-2. Crear cuenta
-3. Ir a "Keys" > "Create Key"
-4. Copiar la key
+1. Ve a [openrouter.ai](https://openrouter.ai/) y crea una cuenta
+2. Ve a "Keys" y crea una nueva clave
+3. Cópiala en `OPENROUTER_API_KEY`
 
 #### Google AI Studio (Gemini)
-1. Ir a https://aistudio.google.com
-2. Crear API key
-3. Copiar la key
+1. Ve a [aistudio.google.com](https://aistudio.google.com/)
+2. Crea una clave de API
+3. Cópiala en `GEMINI_API_KEY`
 
 #### Pinecone
-1. Ir a https://app.pinecone.io
-2. Crear cuenta
-3. Crear un API key
-4. El index se crea automaticamente al ejecutar `upload_knowledge.py`
+1. Ve a [pinecone.io](https://www.pinecone.io/) y crea una cuenta
+2. Crea un nuevo índice con dimensión 768 (Gemini embeddings)
+3. Cópiala en `PINECONE_API_KEY`
 
 #### Supabase
-1. Ir a https://supabase.com
-2. Crear nuevo proyecto
-3. Settings > API
-4. Copiar `URL` y `anon public` key
+1. Ve a [supabase.com](https://supabase.com/) y crea un proyecto
+2. Ve a Settings → API y copia la URL y la `anon` key
 
-### Configuracion de Pinecone
+### Configuración de Pinecone
 
-El sistema crea automaticamente un indice llamado **`englishai-tutor`** con:
-- Dimension: 768 (compatible con Gemini embeddings)
-- Metrica: cosine
-- Cloud: AWS
-- Region: us-east-1
-
-Si necesitas otra region, edita `rag.py` linea 42.
+El script `rag.py` espera:
+- Índice con nombre `codeai-tutor` (configurable en `INDEX_NAME`)
+- Dimensión 768 (embeddings de Gemini `embedding-001`)
+- Métrica cosine
 
 ---
 
-## 6. Como funciona el flujo conversacional
+PLACEHOLDER_PART3
+## 6. Cómo funciona el flujo conversacional
 
 ### Diagrama de estados
 
 ```
-INICIO
-   |
-   v
-[welcome] "Hola! Soy Mr. James. Cual es tu nombre?"
-   |
-   v
-[ask_name] "Cual es tu nivel de ingles?" (muestra botones A1-C2)
-   |
-   v
-[ask_level] "Cual es tu objetivo?" (muestra botones: Travel, Work, etc.)
-   |
-   v
-[ask_goal] "Que quieres practicar?" (muestra modos)
-   |
-   v
-[select_mode] --(selecciona modo)--> [in_session]
-                                                |
-                                                v
-                              "Empecemos [Modo] practice!"
-                                                |
-                                                v
-                              Conversacion libre con LLM
-                                                |
-                                +---------------+---------------+
-                                |               |               |
-                          change_mode      progress        goodbye
-                                |               |               |
-                                v               v               v
-                         [change_mode]    Muestra stats    [goodbye]
-                          (cambia modo)    del estudiante   (fin)
+[init]
+  │
+  ▼
+[welcome] ───► [ask_name] ───► [ask_level] ───► [ask_goal] ───► [select_mode]
+                                                                     │
+                                                                     ▼
+                                            ┌────────────────► [in_session] ◄──┐
+                                            │                         │         │
+                                            │              ┌──────────┘         │
+                                            │              │                    │
+                                            │         [change_mode]          [goodbye]
+                                            │              │                    
+                                            └──────────────┘                    
+                                                       [ask_question]
 ```
 
 ### Estados detallados
 
-| Estado | Mensaje | Input esperado | Siguiente estado |
-|---|---|---|---|
-| `welcome` | "Hello! I am Mr. James..." | (ninguno, solo inicial) | `ask_name` |
-| `ask_name` | "What is your name?" | texto libre (nombre) | `ask_level` |
-| `ask_level` | "What is your level?" | boton A1/A2/B1/B2/C1/C2 | `ask_goal` |
-| `ask_goal` | "What is your goal?" | boton travel/work/studies/etc | `select_mode` |
-| `select_mode` | "What to practice today?" | boton modo | `in_session` |
-| `in_session` | (generado por LLM) | texto libre | `in_session` (loop) |
-| `change_mode` | "What to practice now?" | boton modo | `in_session` |
-| `goodbye` | "It was a pleasure..." | (ninguno) | fin |
+| Estado | Acción | Siguiente |
+|--------|--------|-----------|
+| `welcome` | Saluda y pregunta el nombre | `ask_name` |
+| `ask_name` | Valida el nombre (mínimo 2 letras) | `ask_level` |
+| `ask_level` | Muestra 7 botones con los niveles | `ask_goal` |
+| `ask_goal` | Pregunta objetivo (8 opciones) | `select_mode` |
+| `select_mode` | Muestra los 6 modos | `in_session` |
+| `in_session` | Genera respuesta con LLM | `in_session` (loop) |
+| `change_mode` | Permite cambiar de modo | `in_session` |
+| `ask_question` | Responde preguntas libres | `in_session` |
+| `goodbye` | Despedida y fin de sesión | (ninguno) |
 
-### Como se almacenan las sesiones
+### Cómo se almacenan las sesiones
 
-Flask usa sesiones con cookies firmadas. El estado del estudiante se guarda en:
-
-```python
-session["student"] = {
-    "nombre": "Carlos",
-    "email": "carlos@example.com",  # si lo ingreso
-    "nivel": "B1",
-    "objetivo": "work",
-    "modo_actual": "conversation",
-    "paso_actual": "in_session",
-    "registered": False
-}
-```
-
-El `SECRET_KEY` se usa para firmar las cookies. En produccion, usa uno seguro.
+- **Sesión Flask**: nombre, email, nivel, objetivo, modo actual, paso actual
+- **Supabase (estudiantes)**: persiste los datos del estudiante al iniciar sesión
+- **Supabase (conversaciones)**: guarda cada mensaje y respuesta
+- **Supabase (lecciones_completadas)**: registra lecciones finalizadas
+- **Supabase (vocabulario_aprendido)**: lleva registro de conceptos aprendidos
+- **Supabase (errores_estudiante)**: almacena errores para repaso futuro
 
 ---
 
 ## 7. Modos de aprendizaje
 
-### Conversation (Conversacion) - Default
+### 💡 Conceptos (default)
 
-**Proposito**: Practica libre sobre cualquier tema.
+Modo teórico. El profesor explica los conceptos con ejemplos claros y analogías cotidianas. Ideal para entender "el por qué" de las cosas.
 
-**Como funciona**:
-- El LLM responde como Mr. James
-- Habla 100% en ingles
-- Corrige errores sutilmente
-- Adapta complejidad al nivel del estudiante
+**Cuándo usarlo**: cuando estás aprendiendo un tema nuevo y necesitas una explicación estructurada.
 
-**Ejemplo**:
-```
-Estudiante: I go to the store yesterday
-Mr. James: Great try! Just a small correction: 
-"yesterday" is past time, so we use past simple:
-"I went to the store yesterday." 
-Can you make another sentence using past simple?
-```
+### ⌨️ Práctica
 
-### Grammar (Gramatica)
+Modo hands-on. El profesor te propone ejercicios y retos paso a paso, validando tu código y dándote feedback.
 
-**Proposito**: Ensenar reglas gramaticales con ejemplos.
+**Cuándo usarlo**: cuando ya entiendes los conceptos y quieres afianzarlos programando.
 
-**Como funciona**:
-- LLM explica la regla
-- Da 2-3 ejemplos
-- Pide al estudiante que practique
+### 🚀 Proyectos
 
-**Ejemplo**:
-```
-Estudiante: Teach me about present perfect
-Mr. James: Present perfect is used for past actions 
-with present relevance. Form: have/has + past participle.
-Example: "I have lived in Madrid for 3 years."
-Try it: Tell me something you have done in your life!
-```
+Modo guiado. Construyes proyectos reales (calculadora, API, juego, app web) con la ayuda del profesor en cada paso.
 
-### Vocabulary (Vocabulario)
+**Cuándo usarlo**: cuando quieres construir algo concreto para tu portafolio.
 
-**Proposito**: Ensenar palabras nuevas con contexto.
+### 🎯 Quiz
 
-**Como funciona**:
-- LLM introduce palabras por tema
-- Da ejemplo de uso
-- Pide al estudiante que las use
+Modo interactivo. El profesor te hace preguntas para evaluar tu nivel y reforzar lo aprendido.
 
-**Ejemplo**:
-```
-Estudiante: Teach me food vocabulary
-Mr. James: Lets learn food words! Here are 5 useful ones:
-- "cuisine" = tipo de comida (Italian cuisine)
-- "beverage" = bebida
-- "dish" = plato
-- "spicy" = picante
-- "delicious" = delicioso
-Make a sentence with one of these!
-```
+**Cuándo usarlo**: para autoevaluarte antes de avanzar al siguiente nivel.
 
-### Quiz (Cuestionario)
+### 🧩 Código
 
-**Proposito**: Evaluar conocimiento con preguntas.
+Modo depuración. Le envías tu código al profesor y él lo revisa, explica y mejora contigo.
 
-**Como funciona**:
-- LLM genera preguntas segun nivel
-- Preguntas de opcion multiple o completar
-- Da feedback inmediato
+**Cuándo usarlo**: cuando tienes un error que no entiendes o quieres mejorar una solución.
 
-**Ejemplo**:
-```
-Mr. James: Quiz time! Choose the correct option:
-"She ___ to the gym every day."
-a) go
-b) goes  <- Correct!
-c) going
-d) gone
+### 🤖 IA
 
-You got it right! Great job!
-```
+Modo especializado. Contenido exclusivo sobre Machine Learning, Deep Learning, LLMs, MLOps y ética en IA.
 
-### Pronunciation (Pronunciacion)
-
-**Proposito**: Practicar pronunciacion de frases.
-
-**Como funciona**:
-- LLM da una frase para repetir
-- Estudiante la repite (en chat)
-- LLM da tips de pronunciacion
-
-**Ejemplo**:
-```
-Mr. James: Repeat this: "The weather is wonderful today."
-Tip: "weather" sounds like "WEH-ther", not "WEE-ther".
-Try another: "She sells seashells by the seashore."
-```
+**Cuándo usarlo**: en el nivel INGENIERO_IA, o cuando quieras profundizar en inteligencia artificial.
 
 ---
 
-## 8. Niveles CEFR
+## 8. Los 7 niveles de programación
 
-El sistema sigue el **Marco Comun Europeo de Referencia (CEFR)** con 6 niveles:
+### 🌱 INICIO (sin experiencia previa)
 
-### A1 - Beginner (Principiante)
-- **Vocabulario**: ~500 palabras
-- **Tiempos**: Present simple, present continuous
-- **Puede**: Saludar, presentarse, hablar de rutina
+**Perfil**: nunca ha programado o tiene una idea muy vaga.
 
-### A2 - Elementary (Elemental)
-- **Vocabulario**: ~1000 palabras
-- **Tiempos**: Pasado simple, futuro (going to)
-- **Puede**: Hablar de eventos pasados, hacer planes
+**Temas**: pensamiento computacional, variables, tipos básicos, `print()`, operadores aritméticos y de comparación.
 
-### B1 - Intermediate (Intermedio)
-- **Vocabulario**: ~2000 palabras
-- **Tiempos**: Presente perfecto, condicionales tipo 1
-- **Puede**: Expresar opiniones, contar experiencias
+**Lenguaje recomendado**: Python (sintaxis clara, comunidad grande).
 
-### B2 - Upper-Intermediate
-- **Vocabulario**: ~4000 palabras
-- **Tiempos**: Condicionales 1-3, pasiva, reported speech
-- **Puede**: Discutir temas abstractos, escribir ensayos
+### 🐣 NOVATO (primer lenguaje)
 
-### C1 - Advanced (Avanzado)
-- **Vocabulario**: ~6000+ palabras
-- **Tiempos**: Modales perfectos, mix avanzado
-- **Puede**: Escribir academicamente, debatir
+**Perfil**: ya escribió su primer "Hola mundo" y conoce los tipos básicos.
 
-### C2 - Proficiency (Maestria)
-- **Vocabulario**: 8000+ palabras
-- **Tiempos**: Dominio total
-- **Puede**: Dominio casi nativo
+**Temas**: condicionales (if/else), bucles (for/while), listas, funciones, manejo de strings, módulos.
 
-Como elegir el nivel correcto?:
-- **No se nada**: A1
-- **Se frases basicas**: A2
-- **Puedo conversar en temas diarios**: B1
-- **Me defiendo en viajes/trabajo**: B2
-- **Leo libros sin mucho diccionario**: C1
-- **Hablo casi como nativo**: C2
+### 📚 APRENDIZ (estructuras y POO)
 
+**Perfil**: maneja bucles y funciones, listo para POO.
+
+**Temas**: funciones avanzadas, excepciones, archivos, POO (clases, herencia, encapsulamiento), Git.
+
+### 🛠️ TÉCNICO (frameworks y web/móvil)
+
+**Perfil**: ya programa con soltura en al menos un lenguaje.
+
+**Temas**: HTML/CSS/JS, un framework (React/Vue/Django/Flask), SQL, APIs REST, testing, Git avanzado.
+
+PLACEHOLDER_PART4
+### 🎓 TECNÓLOGO (arquitectura y despliegue)
+
+**Perfil**: domina al menos un framework y desarrolla aplicaciones completas.
+
+**Temas**: patrones de diseño (MVC, Singleton, Factory), Docker, CI/CD, despliegue en cloud (AWS/GCP/Azure/Vercel), bases de datos NoSQL, microservicios.
+
+### 🏗️ INGENIERO (sistemas distribuidos y DevOps)
+
+**Perfil**: arquitecto de software o lead developer.
+
+**Temas**: Kubernetes, Kafka/RabbitMQ, principios SOLID, observabilidad (Prometheus, Grafana), seguridad (OAuth2, JWT, OWASP), Domain-Driven Design.
+
+### 🤖 INGENIERO DE IA (Machine Learning y MLOps)
+
+**Perfil**: científico de datos o ingeniero de ML/AI.
+
+**Temas**: álgebra lineal, estadística, Machine Learning clásico, Deep Learning, PyTorch/TensorFlow, Transformers, LLMs (GPT, Claude, Llama), RAG, MLOps, ética en IA.
 
 ---
 
 ## 9. API Reference
 
-Todos los endpoints devuelven JSON.
+### GET `/`
 
-### GET /
+Sirve la UI del chat (`templates/index.html`).
 
-Retorna la interfaz HTML del chat.
+### POST `/api/chat`
 
-**Respuesta**: HTML
-
----
-
-### POST /api/chat
-
-Endpoint principal del chat. Acepta dos tipos de input:
+Endpoint principal del chat. Acepta dos tipos de payload:
 
 #### A) Mensaje de texto del estudiante
+
 ```json
-{
-  "message": "I want to learn grammar"
-}
+{ "message": "¿Qué es una variable en Python?" }
 ```
 
-**Respuesta**:
+#### B) Acción de botón
+
 ```json
-{
-  "message": "Great! Let's talk about grammar...",
-  "botones": [
-    {"texto": "Change mode", "valor": "change_mode"},
-    {"texto": "My progress", "valor": "progress"},
-    {"texto": "End session", "valor": "goodbye"}
-  ],
-  "paso": "in_session"
-}
+{ "action": "INICIO" }
 ```
 
-#### B) Accion de boton
+Acciones válidas para niveles: `INICIO`, `NOVATO`, `APRENDIZ`, `TECNICO`, `TECNOLOGO`, `INGENIERO`, `INGENIERO_IA`.
+
+Acciones válidas para objetivos: `trabajo`, `estudios`, `emprendimiento`, `ia`, `web`, `videojuegos`, `datos`, `hobby`.
+
+Acciones válidas para modos: `conceptos`, `practica`, `proyectos`, `quiz`, `codigo`, `ia`.
+
+Otras acciones: `init`, `change_mode`, `progress`, `goodbye`.
+
+### POST `/api/speak`
+
+Genera audio TTS en español.
+
 ```json
-{
-  "action": "B1"
-}
+{ "text": "¡Hola! Soy Ing. MOJICA." }
 ```
 
-**Valores de action**:
-- `init` - Iniciar conversacion
-- `A1`, `A2`, `B1`, `B2`, `C1`, `C2` - Seleccionar nivel
-- `travel`, `work`, `studies`, `exams`, `entertainment`, `personal` - Objetivo
-- `conversation`, `grammar`, `vocabulary`, `quiz`, `pronunciation` - Modo
-- `change_mode` - Cambiar modo
-- `progress` - Ver progreso
-- `goodbye` - Terminar sesion
+Retorna un JSON con `audioContent` (base64) y `audioUrl`.
 
-**Respuesta**: Similar a (A) con el siguiente paso del flujo.
+### GET `/api/levels`
 
----
+Devuelve los 7 niveles disponibles:
 
-### POST /api/speak
-
-Genera audio TTS en ingles.
-
-**Request**:
 ```json
-{
-  "text": "Hello! How are you today?"
-}
+{ "levels": ["INICIO","NOVATO","APRENDIZ","TECNICO","TECNOLOGO","INGENIERO","INGENIERO_IA"] }
 ```
 
-**Respuesta exitosa**:
-```json
-{
-  "audioContent": "base64delAudio...",
-  "audioUrl": "data:audio/mp3;base64,xxx",
-  "useBrowserTTS": false,
-  "engine": "edge-tts"
-}
-```
+### GET `/api/modes`
 
-**Respuesta fallback** (si falla edge-tts):
-```json
-{
-  "audioContent": null,
-  "useBrowserTTS": true,
-  "text": "Hello! How are you today?"
-}
-```
+Devuelve los 6 modos con su información.
 
-El frontend usa Web Speech API como fallback.
+### GET `/api/voices`
 
----
+Devuelve las 8 voces TTS disponibles en español.
 
-### GET /api/levels
+### GET `/api/health`
 
-Lista los niveles CEFR disponibles.
+Health check del servicio.
 
-**Respuesta**:
-```json
-{
-  "levels": ["A1", "A2", "B1", "B2", "C1", "C2"]
-}
-```
-
----
-
-### GET /api/modes
-
-Lista los modos de aprendizaje.
-
-**Respuesta**:
-```json
-{
-  "modes": [
-    {
-      "id": "conversation",
-      "nombre": "Conversation",
-      "emoji": "💬",
-      "descripcion": "Free talk - practice speaking about any topic"
-    },
-    ...
-  ]
-}
-```
-
----
-
-### GET /api/voices
-
-Lista las voces TTS disponibles.
-
-**Respuesta**:
-```json
-{
-  "voices": [
-    {
-      "id": "en-US-GuyNeural",
-      "name": "Guy",
-      "gender": "Male",
-      "region": "US",
-      "recommended": true
-    },
-    ...
-  ],
-  "current": "en-US-GuyNeural"
-}
-```
-
-**Voces disponibles**:
-- `en-US-GuyNeural` (M, US) - default
-- `en-US-JennyNeural` (F, US)
-- `en-US-DavisNeural` (M, US)
-- `en-US-AriaNeural` (F, US)
-- `en-GB-RyanNeural` (M, UK)
-- `en-GB-SoniaNeural` (F, UK)
-- `en-AU-WilliamNeural` (M, AU)
-
----
-
-### GET /api/health
-
-Health check del sistema.
-
-**Respuesta**:
 ```json
 {
   "status": "ok",
-  "service": "EnglishAI Tutor",
+  "service": "CodeAI Tutor - Ing. MOJICA",
   "version": "1.0",
   "rag_available": true,
   "gemini_configured": true,
@@ -667,56 +461,17 @@ Health check del sistema.
 }
 ```
 
----
+### GET `/api/pinecone-status`
 
-### GET /api/pinecone-status
+Estadísticas del índice Pinecone (total de vectores indexados).
 
-Estado del indice de Pinecone.
+### GET `/api/student`
 
-**Respuesta**:
-```json
-{
-  "status": "ok",
-  "index": "englishai-tutor",
-  "dimension": 768,
-  "total_vectors": 45
-}
-```
+Información del estudiante en la sesión actual.
 
----
+### POST `/api/reset`
 
-### GET /api/student
-
-Informacion del estudiante actual (de la sesion).
-
-**Respuesta**:
-```json
-{
-  "student": {
-    "nombre": "Carlos",
-    "email": "",
-    "nivel": "B1",
-    "objetivo": "work",
-    "modo_actual": "conversation",
-    "paso_actual": "in_session",
-    "registered": false
-  }
-}
-```
-
----
-
-### POST /api/reset
-
-Reinicia la sesion del estudiante (limpia cookies).
-
-**Respuesta**:
-```json
-{
-  "message": "Session reset",
-  "ok": true
-}
-```
+Reinicia la sesión del estudiante.
 
 ---
 
@@ -724,41 +479,34 @@ Reinicia la sesion del estudiante (limpia cookies).
 
 ### Re-indexar conocimiento
 
-Si modificas `conocimiento_ingles.md`:
-
 ```bash
 python upload_knowledge.py
 ```
 
-El script preguntara si desea eliminar lo anterior antes de subir.
+Útil cuando modificas `conocimiento_programacion.md` o quieres actualizar el RAG.
 
 ### Ver logs
 
-Los logs de Flask se muestran en consola. Para guardar:
-
 ```bash
-python app.py > logs/app.log 2>&1
+# Los logs están en stdout
+python app.py
+
+# Para producción (Gunicorn)
+heroku logs --tail
 ```
 
 ### Backup de Supabase
 
-Desde el dashboard de Supabase:
-1. Settings > Database
-2. Backups > Create backup
+Desde el Dashboard de Supabase:
 
-O via CLI:
-```bash
-supabase db dump > backup.sql
-```
+1. Settings → Database → Backups
+2. Activar backups automáticos (plan Pro) o hacer backups manuales con `pg_dump`.
 
 ### Monitoreo
 
-Verifica regularmente:
-- `/api/health` - estado general
-- `/api/pinecone-status` - estado del RAG
-- Logs de Flask - errores 500
-- Dashboard de Supabase - uso de BD
-- Dashboard de Pinecone - cuota
+- **Logs**: nivel INFO por defecto en Flask
+- **Errores**: se loguean con `app.logger.error(...)` y `traceback`
+- **Health check**: `/api/health` retorna el estado del servicio
 
 ### Actualizar dependencias
 
@@ -766,230 +514,138 @@ Verifica regularmente:
 pip install --upgrade -r requirements.txt
 ```
 
-### Deploy en produccion (Heroku)
+### Deploy en producción (Heroku)
 
-1. Crear app en Heroku
-2. Agregar add-ons:
-   - Heroku Postgres (o usar Supabase externo)
-3. Set env vars:
-   ```bash
-   heroku config:set OPENROUTER_API_KEY=xxx
-   heroku config:set PINECONE_API_KEY=xxx
-   # etc
-   ```
-4. Push:
-   ```bash
-   git push heroku main
-   ```
-
-El `Procfile` ya esta configurado: `web: gunicorn app:app`
+```bash
+heroku login
+heroku create tu-app-codeai
+heroku config:set OPENROUTER_API_KEY=xxx
+heroku config:set GEMINI_API_KEY=xxx
+git push heroku main
+heroku run python upload_knowledge.py
+```
 
 ---
 
-## 11. Personalizacion
+PLACEHOLDER_PART4B
+## 11. Personalización
 
 ### Cambiar la personalidad del profesor
 
-Editar `app.py`, seccion `SYSTEM_PROMPT_BASE`. Ejemplo para hacerlo mas formal:
+Edita el `SYSTEM_PROMPT_BASE` en `app.py`. Ejemplo:
 
 ```python
-SYSTEM_PROMPT_BASE = """You are Professor Smith, a formal academic English teacher...
-- Always use "Mr./Ms." when addressing the student
-- Use academic vocabulary
-- Focus on formal writing style
-..."""
+SYSTEM_PROMPT_BASE = '''
+Eres el Ing. MOJICA, un profesor de programación amable...
+[Personaliza el tono, las frases motivadoras, etc.]
+'''
 ```
 
 ### Cambiar la voz TTS por defecto
 
-En `.env`:
-```
-TTS_VOICE=en-GB-RyanNeural
-```
+Edita `.env`:
 
-O listar las voces disponibles:
 ```bash
-curl http://localhost:5000/api/voices
+TTS_VOICE=es-MX-JorgeNeural
 ```
 
-### Agregar mas modos de aprendizaje
+Voces disponibles: `es-ES-ElviraNeural`, `es-ES-AlvaroNeural`, `es-MX-DaliaNeural`, `es-MX-JorgeNeural`, `es-AR-ElenaNeural`, `es-AR-TomasNeural`, `es-CO-GonzaloNeural`, `es-CO-SalomeNeural`.
 
-1. En `guion.py`, agregar al dict `MODOS`:
-```python
-"writing": {
-    "id": "writing",
-    "nombre": "Writing",
-    "emoji": "✍️",
-    "descripcion": "Practice writing essays and emails"
-}
-```
+### Agregar más modos de aprendizaje
 
-2. En `index.html`, agregar boton en el array de `select_mode`
-
-3. En `app.py`, agregar el modo al `SYSTEM_PROMPT_BASE`:
-```
-- Writing: Help with essays, emails, formal letters
-```
+1. Agrega el modo en `guion.py` → diccionario `MODOS`
+2. Actualiza el botón en `PASOS["select_mode"]["botones"]` y `PASOS["change_mode"]["botones"]`
+3. Actualiza `MODOS_VALIDOS` en `handle_action()` de `app.py`
 
 ### Cambiar el esquema de BD
 
-Si necesitas campos adicionales (ej: `avatar_url`):
-
-1. Agregar columna en Supabase:
-```sql
-ALTER TABLE estudiantes ADD COLUMN avatar_url TEXT;
-```
-
-2. Modificar `database.py > guardar_estudiante()`:
-```python
-registro = {
-    ...
-    "avatar_url": datos.get("avatar_url", ""),
-}
-```
-
-3. Usar en el frontend
+Edita `schema_supabase.sql` y aplica los cambios en Supabase.
 
 ### Cambiar la base de conocimiento
 
-Edita `conocimiento_ingles.md`. Estructura recomendada:
-- Una seccion por tema
-- Ejemplos claros
-- Errores comunes marcados con ❌
-- Formas correctas marcadas con ✅
+Edita `conocimiento_programacion.md` y ejecuta:
 
-Luego re-indexa:
 ```bash
 python upload_knowledge.py
 ```
 
-### Limitar el numero de mensajes
+### Limitar el número de mensajes
 
-Por defecto no hay limite. Para agregar:
-
-En `app.py`, agregar contador en sesion:
-```python
-if session.get("msg_count", 0) > 50:
-    return jsonify({"message": "Session limit reached..."}), 429
-session["msg_count"] = session.get("msg_count", 0) + 1
-```
+En `database.py`, función `guardar_conversacion()`, agrega lógica para mantener solo los últimos N mensajes por estudiante.
 
 ---
 
-## 12. Solucion de problemas
+## 12. Solución de problemas
 
 ### "GEMINI_API_KEY no configurada"
 
-**Causa**: Falta API key en `.env`
-
-**Solucion**:
-1. Verificar que `.env` existe (no `.env.example`)
-2. Verificar que tiene `GEMINI_API_KEY=AIzaSy...`
-3. Reiniciar el servidor
+- Verifica que `.env` tenga la variable
+- Reinicia el servidor
 
 ### "Pinecone not connected"
 
-**Causa**: API key invalida o sin internet
-
-**Solucion**:
-1. Verificar `PINECONE_API_KEY` en `.env`
-2. Probar conexion: `curl https://api.pinecone.io`
-3. Verificar que la key tenga permisos
+- Verifica tu `PINECONE_API_KEY`
+- Verifica que el índice exista en Pinecone Dashboard
 
 ### El bot responde muy lento
 
-**Causa**: Modelo LLM muy grande o latencia de red
-
-**Solucion**:
-1. Usar un modelo mas rapido en `OPENROUTER_MODEL`:
-   ```
-   OPENROUTER_MODEL=mistralai/mistral-7b-instruct
-   ```
-2. Reducir `max_tokens` en `app.py` (default: 400)
-3. Habilitar cache de respuestas
+- OpenRouter/Gemini pueden tener latencia alta
+- Considera usar un modelo más rápido (cambiar `OPENROUTER_MODEL`)
+- Reduce `max_tokens` en el system prompt
 
 ### "Supabase no disponible"
 
-**Causa**: URL o key incorrectas
-
-**Solucion**:
-1. Verificar `SUPABASE_URL` (formato: `https://xxx.supabase.co`)
-2. Verificar `SUPABASE_KEY` (key anon, no service_role)
-3. Verificar que las tablas existen (ejecutar `schema_supabase.sql`)
+- Verifica `SUPABASE_URL` y `SUPABASE_KEY`
+- Verifica que las tablas existan (ejecuta `schema_supabase.sql`)
 
 ### El audio TTS no suena
 
-**Causa**: edge-tts no puede generar el audio
+- Verifica que `edge-tts` esté instalado
+- El navegador puede bloquear el audio automático; revisa la consola
 
-**Solucion**:
-1. El sistema usa fallback automatico: Web Speech API del navegador
-2. Si tampoco suena, verificar permisos de audio del navegador
-3. Verificar que la voz existe: `edge-tts --list-voices`
+### Error 500 en `/api/chat`
 
-### Error 500 en /api/chat
-
-**Causa**: Error interno
-
-**Solucion**:
-1. Ver logs: aparecen en consola
-2. Comunes:
-   - LLM no responde (verificar API key)
-   - Supabase no disponible (verificar conexion)
-   - RAG falla (verificar Pinecone)
-3. Test individual:
-   ```bash
-   curl http://localhost:5000/api/health
-   ```
+- Revisa los logs del servidor
+- Generalmente es por falta de API keys
 
 ### El bot no entiende el nombre
 
-**Causa**: Validacion muy estricta
-
-**Solucion**:
-- Nombres validos: "Maria", "John", "Ana Lucia"
-- Nombres invalidos: "123", "x" (muy corto)
-- Si el nombre tiene numeros, el sistema lo acepta igualmente
-- Editar `validar_nombre` en `guion.py` para cambiar reglas
+- El nombre debe tener al menos 2 letras y no ser solo números
 
 ### Las sesiones no persisten
 
-**Causa**: Cookies no se guardan o `SECRET_KEY` cambia
-
-**Solucion**:
-1. En desarrollo, verificar que el navegador acepta cookies
-2. En produccion, HTTPS es obligatorio para cookies
-3. No cambiar `SECRET_KEY` (rompe sesiones existentes)
+- Flask usa cookies de sesión; verifica que `SECRET_KEY` esté configurado
+- En producción, asegúrate de que las cookies estén habilitadas
 
 ### El bot se "olvida" del nivel
 
-**Causa**: Sesion expirada o reinicio del servidor
-
-**Solucion**:
-- Las sesiones Flask usan cookies firmadas en el cliente
-- Si el servidor reinicia, las sesiones siguen funcionando
-- Si se cambia `SECRET_KEY`, todas las sesiones se invalidan
-- Solucion permanente: guardar perfil en Supabase (campo `email`)
+- El nivel se guarda en `session["student"]["nivel"]`
+- Se persiste en Supabase solo cuando se inicia una sesión de práctica
 
 ---
 
-## Apendice A: Glosario de terminos tecnicos
+## Apéndice A: Glosario de términos técnicos
 
-| Termino | Significado |
-|---|---|
-| **API** | Application Programming Interface - forma de comunicar sistemas |
-| **CEFR** | Common European Framework of Reference - niveles de idiomas |
-| **Embedding** | Representacion numerica de texto para busqueda semantica |
-| **Flask** | Framework web de Python |
-| **LLM** | Large Language Model (modelo de lenguaje grande) |
-| **Pinecone** | Base de datos vectorial |
-| **RAG** | Retrieval-Augmented Generation - LLM + busqueda en BD |
-| **Supabase** | Backend as a Service con PostgreSQL |
-| **TTS** | Text-to-Speech (texto a voz) |
-| **edge-tts** | Libreria para usar Microsoft TTS gratis |
+| Término | Significado |
+|---------|-------------|
+| **LLM** | Large Language Model (modelo de lenguaje grande como GPT, Gemini) |
+| **RAG** | Retrieval-Augmented Generation: combina LLM con búsqueda en una base de conocimiento |
+| **Embeddings** | Representación numérica de texto que captura su significado |
+| **Pinecone** | Base de datos vectorial para búsqueda semántica |
+| **Supabase** | Backend-as-a-Service con PostgreSQL, autenticación y storage |
+| **Flask** | Microframework web para Python |
+| **TTS** | Text-to-Speech: convierte texto en audio |
+| **Edge TTS** | Servicio de Microsoft para TTS neural |
+| **OpenRouter** | Proxy para acceder a múltiples LLMs con una sola API |
+| **Gemini** | Familia de modelos LLM de Google |
+| **System prompt** | Instrucciones iniciales que definen el comportamiento del LLM |
+| **POO** | Programación Orientada a Objetos |
+| **CI/CD** | Continuous Integration / Continuous Deployment |
+| **MLOps** | Machine Learning Operations |
 
 ---
 
-## Apendice B: Comandos utiles
+## Apéndice B: Comandos útiles
 
 ```bash
 # Instalar
@@ -998,57 +654,56 @@ pip install -r requirements.txt
 # Ejecutar desarrollo
 python app.py
 
-# Ejecutar produccion
-gunicorn app:app --bind 0.0.0.0:5000 --workers 1
+# Ejecutar producción
+gunicorn app:app --bind 0.0.0.0:$PORT --workers 2
 
 # Re-indexar conocimiento
 python upload_knowledge.py
 
-# Test rapido
+# Test rápido
 curl http://localhost:5000/api/health
 
 # Ver voces TTS
-edge-tts --list-voices
+curl http://localhost:5000/api/voices
 
 # Limpiar cache Python
-find . -type d -name __pycache__ -exec rm -rf {} +
+find . -type d -name "__pycache__" -exec rm -rf {} +
 ```
 
 ---
 
-## Apendice C: Estructura de archivos
+## Apéndice C: Estructura de archivos
 
 ```
-agentcallpingles-main/
-+-- app.py                      # Flask app principal
-+-- database.py                 # Cliente Supabase
-+-- rag.py                      # RAG con Pinecone
-+-- guion.py                    # Flujo conversacional
-+-- upload_knowledge.py         # Indexador a Pinecone
-+-- conocimiento_ingles.md      # Base de conocimiento
-+-- schema_supabase.sql         # Schema de BD
-+-- requirements.txt            # Dependencias
-+-- .env.example                # Plantilla de env vars
-+-- Procfile                    # Config Heroku
-+-- runtime.txt                 # Version Python
-+-- start.sh                    # Script de inicio
-+-- README.md                   # README principal
-+-- MANUAL.md                   # Este manual
-+-- templates/
-|   +-- index.html              # UI del chat
+agentcallprogramacion-main/
++- app.py                       # Flask app + system prompt
++- database.py                  # Cliente Supabase
++- rag.py                       # RAG con Pinecone
++- guion.py                     # Flujo conversacional
++- upload_knowledge.py          # Indexar conocimiento
++- conocimiento_programacion.md # Base de conocimiento en español
++- schema_supabase.sql          # Schema de BD
++- requirements.txt             # Dependencias
++- .env.example                 # Template de variables
++- .gitignore                   # Archivos ignorados
++- Procfile                     # Deploy Heroku
++- start.sh                     # Script de arranque
++- runtime.txt                  # Versión de Python
++- README.md                    # Documentación principal
++- MANUAL.md                    # Este manual
++- templates/
+   +- index.html                # Chat UI
 ```
 
 ---
 
 ## Soporte y contacto
 
-- **Documentacion tecnica**: `README.md`
-- **Manual de usuario**: `MANUAL.md` (este archivo)
-- **Logs**: Consola del servidor
-- **Health check**: http://localhost:5000/api/health
+- **Repositorio**: https://github.com/ingjcesarmojica/Profeprogramacion
+- **Issues**: https://github.com/ingjcesarmojica/Profeprogramacion/issues
 
----
+¡Bienvenido al mundo de la programación con Ing. MOJICA, Su Profe de Programación! 🚀
 
-**Version**: 1.0
-**Ultima actualizacion**: 2026
-**Licencia**: MIT
+
+
+
