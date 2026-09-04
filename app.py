@@ -71,7 +71,7 @@ OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "xiaomi/mimo-v2.5").strip()
 OPENROUTER_CONFIGURED = bool(OPENROUTER_API_KEY)
 
-TTS_VOICE = os.environ.get("TTS_VOICE", "es-ES-AlvaroNeural")
+TTS_VOICE = os.environ.get("TTS_VOICE", "es-MX-JorgeNeural")
 
 
 SYSTEM_PROMPT_BASE = """Eres el Ing. MOJICA, un profesor de programación amable, paciente y muy didáctico. Tu misión es enseñar programación a hispanohablantes desde cero absoluto hasta el nivel de Ingeniero de IA.
@@ -629,15 +629,14 @@ def list_modes_endpoint():
 @app.route("/api/voices", methods=["GET"])
 def list_voices():
     voices = [
-        {"id": "es-ES-AlvaroNeural", "name": "Álvaro", "gender": "Male", "region": "España", "recommended": True},
-        {"id": "es-ES-ElviraNeural", "name": "Elvira", "gender": "Female", "region": "España"},
-        {"id": "es-ES-AlvaroNeural", "name": "Álvaro", "gender": "Male", "region": "España"},
+        {"id": "es-MX-JorgeNeural", "name": "Jorge", "gender": "Male", "region": "México", "recommended": True},
         {"id": "es-MX-DaliaNeural", "name": "Dalia", "gender": "Female", "region": "México"},
-        {"id": "es-MX-JorgeNeural", "name": "Jorge", "gender": "Male", "region": "México"},
-        {"id": "es-AR-ElenaNeural", "name": "Elena", "gender": "Female", "region": "Argentina"},
-        {"id": "es-AR-TomasNeural", "name": "Tomás", "gender": "Male", "region": "Argentina"},
         {"id": "es-CO-GonzaloNeural", "name": "Gonzalo", "gender": "Male", "region": "Colombia"},
         {"id": "es-CO-SalomeNeural", "name": "Salomé", "gender": "Female", "region": "Colombia"},
+        {"id": "es-AR-TomasNeural", "name": "Tomás", "gender": "Male", "region": "Argentina"},
+        {"id": "es-AR-ElenaNeural", "name": "Elena", "gender": "Female", "region": "Argentina"},
+        {"id": "es-ES-AlvaroNeural", "name": "Álvaro", "gender": "Male", "region": "España"},
+        {"id": "es-ES-ElviraNeural", "name": "Elvira", "gender": "Female", "region": "España"},
     ]
     return jsonify({"voices": voices, "current": TTS_VOICE})
 

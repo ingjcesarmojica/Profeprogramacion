@@ -151,14 +151,14 @@ Abre http://localhost:5000 y verás al **Ing. MOJICA** listo para enseñar.
 
 ## Voces TTS Disponibles (Español)
 
-- `es-ES-ElviraNeural` (F, España) - default
-- `es-ES-AlvaroNeural` (M, España)
+- `es-MX-JorgeNeural` (M, México) - default (acento latino)
 - `es-MX-DaliaNeural` (F, México)
-- `es-MX-JorgeNeural` (M, México)
-- `es-AR-ElenaNeural` (F, Argentina)
-- `es-AR-TomasNeural` (M, Argentina)
 - `es-CO-GonzaloNeural` (M, Colombia)
 - `es-CO-SalomeNeural` (F, Colombia)
+- `es-AR-TomasNeural` (M, Argentina)
+- `es-AR-ElenaNeural` (F, Argentina)
+- `es-ES-AlvaroNeural` (M, España)
+- `es-ES-ElviraNeural` (F, España)
 
 ## Objetivos Soportados
 
