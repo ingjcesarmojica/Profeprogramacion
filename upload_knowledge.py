@@ -14,12 +14,15 @@ from rag import add_text_file, add_pdf, list_documents, delete_document
 
 def main():
     print("=== Subir Documento de Conocimiento a Pinecone ===\n")
-    print("EnglishAI Tutor - Knowledge Base\n")
+    print("CodeAI Tutor - Profesor Byte - Knowledge Base\n")
 
     docs_dir = os.path.dirname(os.path.abspath(__file__))
 
-    md_file = os.path.join(docs_dir, "conocimiento_ingles.md")
-    pdf_file = os.path.join(docs_dir, "conocimiento_ingles.pdf")
+    # Prioriza el archivo nuevo en español
+    md_file = os.path.join(docs_dir, "conocimiento_programacion.md")
+    pdf_file = os.path.join(docs_dir, "conocimiento_programacion.pdf")
+    legacy_md = os.path.join(docs_dir, "conocimiento_ingles.md")
+    legacy_pdf = os.path.join(docs_dir, "conocimiento_ingles.pdf")
 
     print("Documentos actuales en Pinecone:")
     existing = list_documents()
@@ -39,13 +42,22 @@ def main():
                 ok, msg = delete_document(doc)
                 print(f"  Eliminado: {msg}")
 
+    # Prioridad: conocimiento_programacion.pdf -> .md -> legacy
     if os.path.exists(pdf_file):
         print(f"\nSubiendo PDF: {pdf_file}")
-        count, msg = add_pdf(pdf_file, source_name="conocimiento_ingles.pdf")
+        count, msg = add_pdf(pdf_file, source_name="conocimiento_programacion.pdf")
         print(f"  Resultado: {msg}")
     elif os.path.exists(md_file):
         print(f"\nSubiendo Markdown: {md_file}")
-        count, msg = add_text_file(md_file, source_name="conocimiento_ingles.md")
+        count, msg = add_text_file(md_file, source_name="conocimiento_programacion.md")
+        print(f"  Resultado: {msg}")
+    elif os.path.exists(legacy_pdf):
+        print(f"\nSubiendo PDF legacy: {legacy_pdf}")
+        count, msg = add_pdf(legacy_pdf, source_name="conocimiento_ingles.pdf")
+        print(f"  Resultado: {msg}")
+    elif os.path.exists(legacy_md):
+        print(f"\nSubiendo Markdown legacy: {legacy_md}")
+        count, msg = add_text_file(legacy_md, source_name="conocimiento_ingles.md")
         print(f"  Resultado: {msg}")
     else:
         print("\nNo se encontró ningún documento de conocimiento.")

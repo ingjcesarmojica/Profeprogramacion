@@ -1,9 +1,99 @@
+# Python
 __pycache__/
-*.pyc
-.env
-*.mp3
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Entornos virtuales
+venv/
+env/
+ENV/
+.venv/
+.env/
+.env.local
+.env.*.local
+
+# Archivos temporales del proyecto
 tmp_audio.mp3
+*.mp3
+*.wav
+*.ogg
+temp.txt
+*.tmp
+*.log
+*.bak
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Editores e IDEs
 .vscode/
 .idea/
-*.zip
-temp.txt
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de configuración local
+.env.local
+config.local.py
+secrets.json
+
+# Datos sensibles y bases de datos locales
+*.db
+*.sqlite
+*.sqlite3
+
+# Cobertura y testing
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Archivos de sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Archivos generados por la app
+instance/
+.webassets-cache
+
+# Documentación generada
+docs/_build/
+
+# Archivos específicos del proyecto (scripts temporales)
+__step*.py
+__fix_*.py
+__tmp_*.py
+__scratch*.py

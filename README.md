@@ -1,19 +1,42 @@
-﻿# EnglishAI Tutor - Mr. James
+# CodeAI Tutor - Profesor Byte
 
-> AI-powered English teacher for Spanish speakers, available 24/7.
+> Tutor de Programación con IA en español, disponible 24/7. Enseña desde cero absoluto hasta Ingeniería de IA.
 
-An intelligent English tutor agent built with Flask, Pinecone RAG, Supabase, edge-tts, and OpenRouter/Gemini. Mr. James teaches English to Spanish speakers with personalized classes, conversation practice, grammar lessons, vocabulary, quizzes, and pronunciation drills.
+Un agente profesor de programación construido con Flask, Pinecone RAG, Supabase, edge-tts y OpenRouter/Gemini. **Profesor Byte** enseña programación a hispanohablantes con clases personalizadas, ejercicios prácticos, proyectos guiados, quizzes interactivos y soporte para los 7 niveles de aprendizaje (desde principiantes sin experiencia hasta ingenieros especializados en IA).
 
 ## Features
 
-- **5 Learning Modes**: Conversation, Grammar, Vocabulary, Quiz, Pronunciation
-- **6 CEFR Levels**: A1, A2, B1, B2, C1, C2
-- **Adaptive teaching**: Adjusts to student level
-- **RAG knowledge base**: Pinecone + Gemini embeddings
-- **Text-to-speech**: English voices via edge-tts
-- **Progress tracking**: Lessons, vocabulary, mistakes in Supabase
-- **Spanish-aware**: Knows common Spanish-speaker mistakes
-- **Bilingual explanations**: Uses Spanish only when needed
+- **6 Modos de Aprendizaje**: Conceptos, Práctica, Proyectos, Quiz, Código, IA
+- **7 Niveles de Programación**: INICIO, NOVATO, APRENDIZ, TÉCNICO, TECNÓLOGO, INGENIERO, INGENIERO DE IA
+- **Enseñanza adaptativa**: Ajusta el lenguaje y la profundidad al nivel del estudiante
+- **RAG (base de conocimiento)**: Pinecone + embeddings Gemini
+- **Text-to-Speech en español**: Voces neurales de Microsoft vía edge-tts
+- **Seguimiento de progreso**: Lecciones, conceptos y errores en Supabase
+- **100% en español**: Interfaz, system prompt, mensajes y validaciones
+- **Rutas de aprendizaje personalizadas** según objetivo del estudiante
+
+## Los 7 Niveles de Enseñanza
+
+| Nivel | Emoji | Descripción |
+|-------|-------|-------------|
+| **INICIO** | 🌱 | Sin experiencia previa, primer contacto con la programación |
+| **NOVATO** | 🐣 | Conceptos básicos, primer lenguaje (recomendado: Python) |
+| **APRENDIZ** | 📚 | Estructuras de control, funciones, POO inicial, Git |
+| **TÉCNICO** | 🛠️ | Frameworks, SQL, APIs REST, testing, desarrollo web/móvil |
+| **TECNÓLOGO** | 🎓 | Patrones de diseño, microservicios, Docker, CI/CD, cloud |
+| **INGENIERO** | 🏗️ | Sistemas distribuidos, Kubernetes, SOLID, observabilidad, seguridad |
+| **INGENIERO DE IA** | 🤖 | Machine Learning, Deep Learning, LLMs, MLOps, ética en IA |
+
+## Los 6 Modos de Aprendizaje
+
+| Modo | Emoji | Descripción |
+|------|-------|-------------|
+| **Conceptos** | 💡 | Teoría con ejemplos claros y analogías cotidianas |
+| **Práctica** | ⌨️ | Ejercicios paso a paso para afianzar conocimientos |
+| **Proyectos** | 🚀 | Proyectos reales guiados de principio a fin |
+| **Quiz** | 🎯 | Preguntas interactivas para evaluar tu nivel |
+| **Código** | 🧩 | Reviso, explico y depuro el código que envíes |
+| **IA** | 🤖 | Contenido especializado en inteligencia artificial |
 
 ## Tech Stack
 
@@ -21,112 +44,140 @@ An intelligent English tutor agent built with Flask, Pinecone RAG, Supabase, edg
 - **LLM**: OpenRouter (default) + Gemini (fallback)
 - **Vector DB**: Pinecone (RAG)
 - **Database**: Supabase (PostgreSQL)
-- **TTS**: edge-tts (Microsoft neural voices)
+- **TTS**: edge-tts (voces neurales en español)
 - **Embeddings**: Gemini embedding-001
-- **Deploy**: Gunicorn (Heroku-ready via Procfile)
+- **Deploy**: Gunicorn (Heroku-ready vía Procfile)
 
+PLACEHOLDER_P2
 ## Project Structure
 
 ```
-agentcallpingles-main/
-+- app.py                      # Flask app with routes
-+- database.py                 # Supabase client & queries
-+- rag.py                      # Pinecone RAG + embeddings
-+- guion.py                    # Conversation flow & validators
-+- upload_knowledge.py         # Index knowledge base to Pinecone
-+- conocimiento_ingles.md      # Knowledge base (markdown)
-+- schema_supabase.sql         # Database schema
-+- requirements.txt            # Python dependencies
-+- .env.example                # Environment variables template
-+- Procfile                    # Heroku deploy
-+- start.sh                    # Startup script
-+- runtime.txt                 # Python version
+agentcallprogramacion-main/
++- app.py                       # Flask app con rutas y system prompt
++- database.py                  # Cliente Supabase y queries
++- rag.py                       # RAG con Pinecone + embeddings
++- guion.py                     # Flujo conversacional y validadores (7 niveles, 6 modos)
++- upload_knowledge.py          # Indexa la base de conocimiento a Pinecone
++- conocimiento_programacion.md # Base de conocimiento en español
++- schema_supabase.sql          # Schema de BD (CHECK para 7 niveles)
++- requirements.txt             # Dependencias Python
++- .env.example                 # Template de variables de entorno
++- Procfile                     # Deploy Heroku
++- start.sh                     # Script de arranque
++- runtime.txt                  # Versión de Python
++- MANUAL.md                    # Manual de uso detallado
 +- templates/
-   +- index.html               # Chat UI
+   +- index.html                # Chat UI (español)
 ```
 
 ## Setup
 
-### 1. Install dependencies
+### 1. Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure environment
+### 2. Configurar variables de entorno
 
-Copy `.env.example` to `.env` and fill in the values:
+Copia `.env.example` a `.env` y completa los valores:
 
 ```bash
 cp .env.example .env
 ```
 
-You need:
-- `OPENROUTER_API_KEY` or `GEMINI_API_KEY` (LLM)
+Necesitas:
+- `OPENROUTER_API_KEY` o `GEMINI_API_KEY` (LLM)
 - `PINECONE_API_KEY` (RAG)
-- `SUPABASE_URL` and `SUPABASE_KEY` (database)
-- `TTS_VOICE` (default: `en-US-GuyNeural`)
+- `SUPABASE_URL` y `SUPABASE_KEY` (base de datos)
+- `TTS_VOICE` (default: `es-ES-ElviraNeural`)
 
-### 3. Create database tables
+### 3. Crear las tablas en la base de datos
 
-Run the SQL in `schema_supabase.sql` in your Supabase SQL editor.
+Ejecuta el SQL en `schema_supabase.sql` desde el SQL Editor de Supabase.
 
-### 4. Index the knowledge base
+El schema valida que el nivel del estudiante pertenezca a los 7 valores permitidos:
+`INICIO`, `NOVATO`, `APRENDIZ`, `TECNICO`, `TECNOLOGO`, `INGENIERO`, `INGENIERO_IA`.
+
+Si ya tienes una base de datos con el schema antiguo, actualiza el CHECK:
+
+```sql
+ALTER TABLE estudiantes DROP CONSTRAINT IF EXISTS estudiantes_nivel_check;
+ALTER TABLE estudiantes ADD CONSTRAINT estudiantes_nivel_check
+  CHECK (nivel IN ('INICIO','NOVATO','APRENDIZ','TECNICO','TECNOLOGO','INGENIERO','INGENIERO_IA'));
+```
+
+### 4. Indexar la base de conocimiento
 
 ```bash
 python upload_knowledge.py
 ```
 
-This uploads `conocimiento_ingles.md` to Pinecone.
+Esto sube `conocimiento_programacion.md` a Pinecone para alimentar el RAG.
 
-### 5. Run locally
+### 5. Ejecutar localmente
 
 ```bash
 python app.py
 ```
 
-Open http://localhost:5000
+Abre http://localhost:5000 y verás al **Profesor Byte** listo para enseñar.
 
-## Conversation Flow
+PLACEHOLDER_P3
+## Flujo de la Conversación
 
-1. **Welcome** - Mr. James greets the student
-2. **Ask name** - Student provides their name
-3. **Ask level** - Choose CEFR level (A1-C2)
-4. **Ask goal** - Why are you learning English? (travel/work/studies/etc.)
-5. **Select mode** - Choose practice mode
-6. **In session** - Free practice with LLM
-7. **Change mode** - Switch between modes anytime
-8. **Goodbye** - End session
+1. **Welcome** - El Profesor Byte saluda al estudiante
+2. **Ask name** - El estudiante proporciona su nombre
+3. **Ask level** - Elige uno de los 7 niveles (INICIO → INGENIERO_IA)
+4. **Ask goal** - ¿Cuál es tu objetivo? (trabajo, estudios, IA, web, videojuegos, etc.)
+5. **Select mode** - Elige uno de los 6 modos (Conceptos, Práctica, Proyectos, Quiz, Código, IA)
+6. **In session** - Práctica libre con el LLM adaptado al nivel
+7. **Change mode** - Cambia de modo en cualquier momento
+8. **Mi progreso** - Ve tus lecciones, conceptos y errores registrados
+9. **Goodbye** - Finaliza la sesión
 
 ## API Endpoints
 
-| Endpoint | Method | Description |
+| Endpoint | Método | Descripción |
 |----------|--------|-------------|
 | `/` | GET | Chat UI |
-| `/api/chat` | POST | Main chat (message or action) |
-| `/api/speak` | POST | TTS audio generation |
-| `/api/levels` | GET | Available CEFR levels |
-| `/api/modes` | GET | Available learning modes |
-| `/api/voices` | GET | Available TTS voices |
-| `/api/health` | GET | Health check |
-| `/api/pinecone-status` | GET | Pinecone index stats |
-| `/api/student` | GET | Current student info |
-| `/api/reset` | POST | Reset session |
+| `/api/chat` | POST | Chat principal (message o action) |
+| `/api/speak` | POST | Generación de audio TTS en español |
+| `/api/levels` | GET | 7 niveles de programación |
+| `/api/modes` | GET | 6 modos de aprendizaje |
+| `/api/voices` | GET | Voces TTS disponibles en español |
+| `/api/health` | GET | Health check del servicio |
+| `/api/pinecone-status` | GET | Estadísticas del índice Pinecone |
+| `/api/student` | GET | Información del estudiante actual |
+| `/api/reset` | POST | Reinicia la sesión |
 
-## Available TTS Voices (English)
+## Voces TTS Disponibles (Español)
 
-- `en-US-GuyNeural` (M, US) - default
-- `en-US-JennyNeural` (F, US)
-- `en-US-DavisNeural` (M, US)
-- `en-US-AriaNeural` (F, US)
-- `en-GB-RyanNeural` (M, UK)
-- `en-GB-SoniaNeural` (F, UK)
-- `en-AU-WilliamNeural` (M, AU)
+- `es-ES-ElviraNeural` (F, España) - default
+- `es-ES-AlvaroNeural` (M, España)
+- `es-MX-DaliaNeural` (F, México)
+- `es-MX-JorgeNeural` (M, México)
+- `es-AR-ElenaNeural` (F, Argentina)
+- `es-AR-TomasNeural` (M, Argentina)
+- `es-CO-GonzaloNeural` (M, Colombia)
+- `es-CO-SalomeNeural` (F, Colombia)
 
-## License
+## Objetivos Soportados
+
+- 💼 Trabajar como desarrollador
+- 🎓 Estudios / Universidad
+- 🚀 Crear mi propio proyecto / emprendimiento
+- 🤖 Aprender Inteligencia Artificial
+- 🌐 Desarrollo web
+- 🎮 Crear videojuegos
+- 📊 Análisis de datos
+- 🧑‍💻 Curiosidad / Hobby
+
+## Licencia
 
 MIT
 
-## Credits
+## Créditos
 
-Built for Spanish speakers learning English, by an AI tutoring system designed to be patient, encouraging, and effective.
+Construido para hispanohablantes que quieren aprender programación. El Profesor Byte es paciente, motivador y eficaz: enseña desde cero hasta Ingeniería de IA con clases personalizadas las 24 horas, los 7 días de la semana.
+
