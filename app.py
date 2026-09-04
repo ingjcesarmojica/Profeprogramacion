@@ -1,6 +1,6 @@
 """
 CodeAI Tutor - Agente IA Profesor de Programación
-Profesor Byte - 24/7 Programming teacher in Spanish
+Ing. MOJICA - 24/7 Programming teacher in Spanish
 
 Aplicacion Flask con RAG (Pinecone), Supabase, edge-tts y OpenRouter/Gemini.
 Enseña 7 niveles: Inicio, Novato, Aprendiz, Técnico, Tecnólogo, Ingeniero, Ingeniero de IA.
@@ -74,7 +74,7 @@ OPENROUTER_CONFIGURED = bool(OPENROUTER_API_KEY)
 TTS_VOICE = os.environ.get("TTS_VOICE", "es-ES-ElviraNeural")
 
 
-SYSTEM_PROMPT_BASE = """Eres el Profesor Byte, un profesor de programación amable, paciente y muy didáctico. Tu misión es enseñar programación a hispanohablantes desde cero absoluto hasta el nivel de Ingeniero de IA.
+SYSTEM_PROMPT_BASE = """Eres el Ing. MOJICA, un profesor de programación amable, paciente y muy didáctico. Tu misión es enseñar programación a hispanohablantes desde cero absoluto hasta el nivel de Ingeniero de IA.
 
 ## Tu personalidad
 - Cálido, motivador y paciente, como un mentor que adora enseñar
@@ -241,13 +241,13 @@ def openrouter_response(user_message, student_data, modo_actual=""):
 
 Estudiante dijo: {user_message}
 
-Responde como el Profesor Byte de forma amable y motivadora. Mantén la respuesta corta (2-4 frases típicas) salvo que el tema requiera más profundidad. Responde SIEMPRE en español."""
+Responde como el Ing. MOJICA de forma amable y motivadora. Mantén la respuesta corta (2-4 frases típicas) salvo que el tema requiera más profundidad. Responde SIEMPRE en español."""
 
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://codeai-tutor.com",
-            "X-Title": "CodeAI Tutor - Profesor Byte",
+            "X-Title": "CodeAI Tutor - Ing. MOJICA",
         }
         payload = {
             "model": OPENROUTER_MODEL,
@@ -280,7 +280,7 @@ def gemini_response(user_message, student_data, modo_actual=""):
 
 Estudiante dijo: {user_message}
 
-Responde como el Profesor Byte, en español, de forma amable y motivadora:"""
+Responde como el Ing. MOJICA, en español, de forma amable y motivadora:"""
 
         response = gemini_model.generate_content(prompt)
         return response.text
@@ -388,7 +388,7 @@ def chat():
             student['paso_actual'] = 'ask_name'
             session.modified = True
             return jsonify({
-                'message': '¡Hola! Soy el Profesor Byte, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?',
+                'message': '¡Hola! Soy el Ing. MOJICA, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?',
                 'botones': None,
                 'paso': 'ask_name',
             })
@@ -409,7 +409,7 @@ def handle_action(action, student):
     """Maneja acciones de botones (level, mode, goal)."""
     paso_actual = student.get("paso_actual", "welcome")
 
-    # Accin: seleccionar nivel (los 7 niveles del profesor Byte)
+    # Accin: seleccionar nivel (los 7 niveles del Ing. MOJICA)
     niveles_validos = ["INICIO", "NOVATO", "APRENDIZ", "TECNICO", "TECNOLOGO", "INGENIERO", "INGENIERO_IA"]
     if action in niveles_validos:
         student["nivel"] = action
@@ -544,7 +544,7 @@ def handle_step(paso_actual, user_message, student):
         student["paso_actual"] = "ask_name"
         session.modified = True
         return jsonify({
-            "message": "¡Hola! Soy el Profesor Byte, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?",
+            "message": "¡Hola! Soy el Ing. MOJICA, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?",
             "botones": None,
             "paso": "ask_name",
         })
@@ -659,7 +659,7 @@ def get_student_info():
 def health_check():
     return jsonify({
         "status": "ok",
-        "service": "CodeAI Tutor - Profesor Byte",
+        "service": "CodeAI Tutor - Ing. MOJICA",
         "version": "1.0",
         "rag_available": RAG_AVAILABLE,
         "gemini_configured": GEMINI_CONFIGURED,
@@ -696,7 +696,7 @@ def pinecone_status():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.logger.info("=" * 60)
-    app.logger.info("CodeAI Tutor - Profesor Byte")
+    app.logger.info("CodeAI Tutor - Ing. MOJICA")
     app.logger.info("Enseña programación en 7 niveles: Inicio -> Ingeniero de IA")
     app.logger.info(f"Voice: {TTS_VOICE}")
     app.logger.info(f"Port: {port}")

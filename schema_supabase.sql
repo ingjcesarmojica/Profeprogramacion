@@ -1,5 +1,5 @@
 -- ================================================
--- SCHEMA: Base de datos CodeAI Tutor - Profesor Byte
+-- SCHEMA: Base de datos CodeAI Tutor - Ing. MOJICA
 -- 7 niveles de programación: INICIO, NOVATO, APRENDIZ, TECNICO, TECNOLOGO, INGENIERO, INGENIERO_IA
 -- Supabase (PostgreSQL)
 -- Ejecutar en SQL Editor de Supabase Dashboard

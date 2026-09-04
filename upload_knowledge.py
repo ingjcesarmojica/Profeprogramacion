@@ -14,7 +14,7 @@ from rag import add_text_file, add_pdf, list_documents, delete_document
 
 def main():
     print("=== Subir Documento de Conocimiento a Pinecone ===\n")
-    print("CodeAI Tutor - Profesor Byte - Knowledge Base\n")
+    print("CodeAI Tutor - Ing. MOJICA - Knowledge Base\n")
 
     docs_dir = os.path.dirname(os.path.abspath(__file__))
 

@@ -1,5 +1,5 @@
 """
-Guion Conversacional - Agente IA Profesor de Programación "Profesor Byte"
+Guion Conversacional - Agente IA Profesor de Programación "Ing. MOJICA"
 CodeAI Tutor
 
 Flujo conversacional para clases de programación en español.
@@ -81,7 +81,7 @@ PASOS = {
     "welcome": {
         "id": "welcome",
         "siguiente": "ask_name",
-        "mensaje": "¡Hola! Soy el Profesor Byte, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?",
+        "mensaje": "¡Hola! Soy el Ing. MOJICA, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?",
         "validar": None,
         "botones": None,
         "campo": None,
