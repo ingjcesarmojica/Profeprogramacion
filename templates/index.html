@@ -76,11 +76,20 @@
         // Stream de respuesta del LLM usando SSE. Muestra cada fragmento al llegar.
         async function streamBotResponse(text) {
             hideTyping();
-            // Crear el contenedor del mensaje con un span vacio
+            // Crear el contenedor del mensaje con un span para el texto y
+            // otro span con la animacion de typing (3 puntitos que rebotan,
+            // misma clase .typing usada en showTyping()). El span de typing
+            // se muestra mientras no llegue el primer token real del LLM,
+            // dando la sensacion de que el profesor esta escribiendo.
             const msg = document.createElement("div");
             msg.className = "message bot streaming";
+            const typingDots = document.createElement("span");
+            typingDots.className = "typing";
+            typingDots.innerHTML = "<span></span><span></span><span></span>";
             const span = document.createElement("span");
+            span.className = "bot-text";
             span.textContent = "";
+            msg.appendChild(typingDots);
             msg.appendChild(span);
             const speakBtn = document.createElement("button");
             speakBtn.className = "speak-btn";
@@ -89,15 +98,7 @@
             messagesEl.appendChild(msg);
             messagesEl.scrollTop = messagesEl.scrollHeight;
 
-            // Apariencia inmediata: si en 3s no llega el primer token,
-            // mostramos un "..." sutil para no sentir que se quedo colgado.
             let firstTokenSeen = false;
-            const typingFallback = setTimeout(() => {
-                if (!firstTokenSeen) {
-                    span.textContent = "...";
-                }
-            }, 3000);
-
             let fullText = "";
             try {
                 const res = await fetch("/api/chat/stream", {
@@ -130,18 +131,18 @@
                             if (obj.event === "token" && obj.delta) {
                                 if (!firstTokenSeen) {
                                     firstTokenSeen = true;
-                                    clearTimeout(typingFallback);
-                                    span.textContent = "";
+                                    // Quitar los 3 puntitos animados al recibir el primer token real
+                                    if (typingDots.parentNode) typingDots.remove();
                                 }
                                 fullText += obj.delta;
                                 span.textContent = fullText;
                                 messagesEl.scrollTop = messagesEl.scrollHeight;
                             } else if (obj.event === "done") {
                                 firstTokenSeen = true;
-                                clearTimeout(typingFallback);
+                                if (typingDots.parentNode) typingDots.remove();
                                 fullText = obj.text || fullText;
                                 span.textContent = fullText;
-                                // Renderizar botones de acciones rapidas (como antes)
+                                // Renderizar botones del paso (niveles, modos, acciones rapidas)
                                 if (obj.botones && obj.botones.length) {
                                     const cont = document.createElement("div");
                                     cont.className = "buttons-container";
@@ -150,13 +151,20 @@
                                         btn.className = "option-btn";
                                         btn.textContent = b.texto;
                                         btn.title = b.descripcion || "";
+                                        // Si es un nivel valido, guardarlo para el badge
+                                        const nivelesValidos = ["INICIO","NOVATO","APRENDIZ","TECNICO","TECNOLOGO","INGENIERO","INGENIERO_IA","JUNIOR","SENIOR","CONSULTOR","ANALISTA_DATOS","DBA","CALIDAD"];
+                                        if (nivelesValidos.includes(b.valor)) {
+                                            sessionStorage.setItem("nivel", b.valor);
+                                        }
                                         btn.onclick = () => { sendAction(b.valor, b.texto); disableBtns(cont); };
                                         cont.appendChild(btn);
                                     });
                                     msg.parentNode.insertBefore(cont, msg.nextSibling);
                                     messagesEl.scrollTop = messagesEl.scrollHeight;
                                 }
+                                if (obj.paso) updateLevelBadge(obj.paso);
                             } else if (obj.error) {
+                                if (typingDots.parentNode) typingDots.remove();
                                 span.textContent = "Error: " + obj.error;
                             }
                         } catch (e) {
@@ -167,7 +175,6 @@
                 // Configurar speakBtn con el texto completo al final
                 speakBtn.onclick = () => speakText(fullText);
                 msg.classList.remove("streaming");
-                updateLevelBadge("in_session");
             } catch (e) {
                 // Si el streaming falla, fallback al endpoint clasico
                 try {
@@ -177,15 +184,18 @@
                         body: JSON.stringify({ message: text })
                     });
                     const d2 = await r2.json();
+                    if (typingDots.parentNode) typingDots.remove();
                     span.textContent = d2.message || "";
                     fullText = d2.message || "";
                     speakBtn.onclick = () => speakText(fullText);
                     if (d2.paso) updateLevelBadge(d2.paso);
                 } catch (e2) {
+                    if (typingDots.parentNode) typingDots.remove();
                     span.textContent = "Error de conexión. Por favor, inténtalo de nuevo.";
                 }
             } finally {
-                clearTimeout(typingFallback);
+                // Limpiar el typingDots si por alguna razon quedo visible
+                if (typingDots.parentNode) typingDots.remove();
             }
         }
 

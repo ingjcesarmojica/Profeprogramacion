@@ -841,35 +841,72 @@ IN_SESSION_BOTONES = [
 def chat_stream():
     """Stream de la respuesta del LLM usando Server-Sent Events.
 
-    Cada chunk que llega del LLM se envia como un evento SSE 'data: <json>'.
-    Al terminar se envia un evento final con done=true y los botones
-    de acciones rapidas (igual que el endpoint clasico).
+    Comportamiento segun el paso actual del estudiante:
+    - Si NO estamos en in_session (ask_name, ask_level, ask_goal,
+      select_mode, change_mode, etc.): NO usamos LLM, solo avanzamos
+      el guion con handle_step y emitimos el mensaje + botones del
+      paso siguiente como un unico evento SSE.
+    - Si SI estamos en in_session: usamos el LLM con streaming real,
+      token por token, y al final emitimos los botones de acciones
+      rapidas (Cambiar modo, Mi progreso, Finalizar sesion).
+
+    Esto arregla la regresion donde el frontend enviaba TODO a
+    /api/chat/stream, y al no saber manejar los pasos intermedios
+    los renderizaba vacios o con el typing incorrecto.
     """
     def event_stream():
         try:
             payload = request.json or {}
             message = payload.get("message", "")
+            student = get_student_state()
+            paso_actual = student.get("paso_actual", "welcome")
+
+            # Caso 1: paso intermedio del guion -> NO usar LLM, solo
+            # avanzar el paso y devolver mensaje + botones del paso.
+            # handle_step usa session internamente, que ya esta disponible
+            # en este contexto de request real de Flask.
+            if paso_actual != "in_session":
+                resp = handle_step(paso_actual, message, student)
+                data = resp.get_json() or {}
+                # Avisamos el paso entrante (para el badge, etc.)
+                yield "data: " + json.dumps({
+                    "event": "start",
+                    "paso": data.get("paso", paso_actual),
+                }) + "\n\n"
+                # Un solo "token" con todo el texto del paso
+                texto = data.get("message", "") or ""
+                yield "data: " + json.dumps({
+                    "event": "token",
+                    "delta": texto,
+                }) + "\n\n"
+                # Evento final con texto completo + botones del paso
+                yield "data: " + json.dumps({
+                    "event": "done",
+                    "text": texto,
+                    "botones": data.get("botones"),
+                    "paso": data.get("paso", paso_actual),
+                }) + "\n\n"
+                return
+
+            # Caso 2: in_session -> LLM real con streaming
             if not message:
                 yield "data: " + json.dumps({"error": "No message"}) + "\n\n"
                 return
-            student = get_student_state()
             modo = student.get("modo_actual") or "conceptos"
 
-            # Primero: hint de paso (in_session)
             yield "data: " + json.dumps({"event": "start", "paso": "in_session"}) + "\n\n"
             full = []
             for piece in get_llm_stream(message, student, modo):
                 full.append(piece)
                 yield "data: " + json.dumps({"event": "token", "delta": piece}) + "\n\n"
             final_text = "".join(full)
-            # Evento final con texto completo + botones de acciones rapidas
             yield "data: " + json.dumps({
                 "event": "done",
                 "text": final_text,
                 "botones": IN_SESSION_BOTONES,
             }) + "\n\n"
         except Exception as e:
-            app.logger.error(f"chat_stream error: {e}")
+            app.logger.error(f"chat_stream error: {e}", exc_info=True)
             yield "data: " + json.dumps({"error": str(e)}) + "\n\n"
 
     return Response(stream_with_context(event_stream)(), mimetype="text/event-stream")
