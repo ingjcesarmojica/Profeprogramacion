@@ -25,8 +25,24 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .message.bot { background: #1e3a5f; color: #ffffff; align-self: flex-start; border-bottom-left-radius: 4px; }
         .message.user { background: #1976d2; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .message .speak-btn { position: absolute; right: -28px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; }
-        .message .speak-btn:hover { opacity: 1; }
+        .message .speak-btn { position: absolute; right: -34px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; font-size: 22px; opacity: 0.85; transition: opacity 0.2s, transform 0.15s; filter: drop-shadow(0 0 1px rgba(0,0,0,0.4)); }
+        .message .speak-btn:hover { opacity: 1; transform: translateY(-50%) scale(1.15); }
+        .message .speak-btn.playing { color: #1976d2; animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: translateY(-50%) scale(1); } 50% { transform: translateY(-50%) scale(1.2); } }
+        .code-block { background: #0d1b2a; border: 1px solid #1e3a5f; border-radius: 10px; padding: 12px 14px; margin: 8px 0; font-family: "Fira Code", "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5; color: #e3f2fd; overflow-x: auto; white-space: pre; max-height: 300px; overflow-y: auto; position: relative; }
+        .code-block::-webkit-scrollbar { height: 6px; width: 6px; }
+        .code-block::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
+        .code-block-lang { position: absolute; top: 6px; right: 8px; font-size: 10px; color: #64b5f6; font-weight: 600; text-transform: uppercase; opacity: 0.7; font-family: "Inter", sans-serif; }
+        .bot-text { white-space: pre-wrap; word-wrap: break-word; }
+        .bot-text p { margin: 6px 0; }
+        .bot-text strong { font-weight: 700; color: #90caf9; }
+        .bot-text em { font-style: italic; color: #bbdefb; }
+        .bot-text code { background: #1e3a5f; padding: 1px 5px; border-radius: 4px; font-family: "Fira Code", "Consolas", monospace; font-size: 12px; color: #ffe082; }
+        .bot-text ul, .bot-text ol { margin: 6px 0 6px 20px; }
+        .bot-text li { margin: 3px 0; }
+        .voice-toggle { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 4px 10px; font-size: 10px; color: #90caf9; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: "Inter", sans-serif; z-index: 5; transition: background 0.2s; }
+        .voice-toggle:hover { background: rgba(255,255,255,0.1); }
+        .voice-toggle.muted { color: #607d8b; }
         .buttons-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; align-self: flex-start; max-width: 90%; }
         .option-btn { background: #1976d2; color: #fff; border: none; padding: 8px 14px; border-radius: 16px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
         .option-btn:hover { background: #1565c0; }
@@ -48,6 +64,7 @@
     <div class="app-container">
         <div class="header">
             <div class="logo">CodeAI Tutor</div>
+            <button id="voiceToggle" class="voice-toggle" title="Activar/Desactivar voz automática">🔊 Voz ON</button>
             <div class="profile">
                 <div class="avatar-container">
                     <div class="avatar"><img src="{{ url_for('static', filename='profe.png') }}" alt="Ing. MOJICA" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>
@@ -68,10 +85,117 @@
         const messagesEl = document.getElementById("chatMessages");
         const inputEl = document.getElementById("userInput");
         const levelBadge = document.getElementById("levelBadge");
+        const voiceToggleBtn = document.getElementById("voiceToggle");
         let currentAudio = null;
         let isProcessing = false;
+        // Voz automatica ON por defecto. El usuario puede desactivarla
+        // haciendo click en el toggle del header.
+        let voiceEnabled = true;
+
+        // Toggle de voz automatica
+        voiceToggleBtn.addEventListener("click", () => {
+            voiceEnabled = !voiceEnabled;
+            voiceToggleBtn.textContent = voiceEnabled ? "🔊 Voz ON" : "🔇 Voz OFF";
+            voiceToggleBtn.classList.toggle("muted", !voiceEnabled);
+            if (!voiceEnabled && currentAudio) {
+                // Si desactivamos la voz mientras hay audio sonando, lo paramos.
+                currentAudio.pause();
+                currentAudio = null;
+                // Tambien quitar cualquier TTS del navegador en cola
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            }
+        });
 
         inputEl.addEventListener("keypress", (e) => { if (e.key === "Enter" && !isProcessing) sendMessage(); });
+
+        // ── Renderizado de markdown + exclusion de codigo para TTS ──
+        // Esta funcion recibe el texto completo del LLM (con markdown),
+        // y devuelve:
+        //   - container: un <div> con el HTML listo para mostrar bonito
+        //     (bloques de codigo en <pre><code>, negritas en <strong>, etc.)
+        //   - speakText: el texto SIN codigo, listo para enviar a /api/speak.
+        //     El codigo se reemplaza por "Aqui va un ejemplo de codigo."
+        //     para que el avatar sepa que NO debe leerlo, solo mencionarlo.
+        function renderMarkdown(rawText) {
+            const container = document.createElement("div");
+            container.className = "bot-text";
+            // speakText acumula solo lo que NO es codigo
+            let speakText = "";
+            // Split por bloques de codigo (```lenguaje\ncodigo\n```)
+            // usando una regex que captura el bloque entero.
+            const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
+            let lastIndex = 0;
+            let match;
+            while ((match = codeBlockRegex.exec(rawText)) !== null) {
+                // Texto antes del bloque de codigo
+                const before = rawText.slice(lastIndex, match.index);
+                if (before) {
+                    const inlineHtml = formatInlineMarkdown(before);
+                    container.insertAdjacentHTML("beforeend", inlineHtml);
+                    speakText += stripMarkdown(before) + " ";
+                }
+                // Bloque de codigo: lo renderizamos como <pre><code>
+                const lang = match[1] || "";
+                const code = match[2] || "";
+                const pre = document.createElement("pre");
+                pre.className = "code-block";
+                // Etiqueta de lenguaje arriba a la derecha
+                if (lang) {
+                    const langLabel = document.createElement("span");
+                    langLabel.className = "code-block-lang";
+                    langLabel.textContent = lang;
+                    pre.appendChild(langLabel);
+                }
+                const codeEl = document.createElement("code");
+                codeEl.textContent = code;
+                pre.appendChild(codeEl);
+                container.appendChild(pre);
+                // Para TTS: NO leemos el codigo, solo anunciamos que hay uno.
+                speakText += "Aquí va un ejemplo de código. ";
+                lastIndex = match.index + match[0].length;
+            }
+            // Resto del texto despues del ultimo bloque de codigo
+            const tail = rawText.slice(lastIndex);
+            if (tail) {
+                container.insertAdjacentHTML("beforeend", formatInlineMarkdown(tail));
+                speakText += stripMarkdown(tail);
+            }
+            return { container, speakText: speakText.trim() };
+        }
+
+        // Markdown inline (sin bloques de codigo): negritas, cursivas,
+        // codigo en linea, listas simples.
+        function formatInlineMarkdown(text) {
+            // Escapar HTML primero para evitar XSS
+            let s = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            // Codigo en linea: `x` -> <code>x</code>
+            s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+            // Negritas: **x** -> <strong>x</strong>
+            s = s.replace(/\*\*([^*\n]+?)\*\*/g, "<strong>$1</strong>");
+            // Cursivas: *x* -> <em>x</em> (cuidando no romper guiones bajos)
+            s = s.replace(/(?<![A-Za-z0-9_])\*([^*\n]+?)\*(?![A-Za-z0-9_])/g, "<em>$1</em>");
+            // Listas simples: lineas que empiezan con "- " o "* "
+            s = s.replace(/(^|\n)[-*]\s+(.+)/g, "$1<li>$2</li>");
+            s = s.replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>");
+            // Saltos de linea -> <br>
+            s = s.replace(/\n/g, "<br>");
+            return s;
+        }
+
+        // Para TTS: quitar todo el markdown y dejar texto natural.
+        function stripMarkdown(text) {
+            let s = text;
+            s = s.replace(/`([^`]+)`/g, "$1");
+            s = s.replace(/\*\*([^*\n]+?)\*\*/g, "$1");
+            s = s.replace(/(?<![A-Za-z0-9_])\*([^*\n]+?)\*(?![A-Za-z0-9_])/g, "$1");
+            s = s.replace(/^\s*[-*]\s+/gm, "");
+            s = s.replace(/\n/g, " ");
+            s = s.replace(/\s+/g, " ");
+            return s.trim();
+        }
 
         // Stream de respuesta del LLM usando SSE. Muestra cada fragmento al llegar.
         async function streamBotResponse(text) {
@@ -86,11 +210,12 @@
             const typingDots = document.createElement("span");
             typingDots.className = "typing";
             typingDots.innerHTML = "<span></span><span></span><span></span>";
-            const span = document.createElement("span");
-            span.className = "bot-text";
-            span.textContent = "";
+            // El contenedor del texto se reemplaza entero en cada render
+            // para que el markdown (codigo, negritas, etc.) se vea bonito.
+            const textContainer = document.createElement("div");
+            textContainer.className = "bot-text";
             msg.appendChild(typingDots);
-            msg.appendChild(span);
+            msg.appendChild(textContainer);
             const speakBtn = document.createElement("button");
             speakBtn.className = "speak-btn";
             speakBtn.textContent = "🔊";
@@ -99,7 +224,54 @@
             messagesEl.scrollTop = messagesEl.scrollHeight;
 
             let firstTokenSeen = false;
-            let fullText = "";
+            let fullText = "";        // markdown crudo del LLM
+            let speakOnlyText = "";   // texto limpio para TTS (sin codigo)
+            // Re-renderizador con throttling: no queremos re-renderizar el
+            // markdown completo en cada token (seria lento). Usamos un
+            // microtask para aplazar al final del tick.
+            let renderScheduled = false;
+            const scheduleRender = () => {
+                if (renderScheduled) return;
+                renderScheduled = true;
+                queueMicrotask(() => {
+                    renderScheduled = false;
+                    const { container, speakText } = renderMarkdown(fullText);
+                    textContainer.innerHTML = "";
+                    // Mover todos los hijos del container al textContainer
+                    while (container.firstChild) {
+                        textContainer.appendChild(container.firstChild);
+                    }
+                    speakOnlyText = speakText;
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                });
+            };
+
+            // Funcion que se llama cuando termina el stream (evento done).
+            // Aqui configuramos el speakBtn, disparamos auto-play si esta
+            // habilitado, y dejamos el contenido listo.
+            const finalizeResponse = () => {
+                speakBtn.classList.remove("playing");
+                speakBtn.textContent = "🔊";
+                speakBtn.onclick = () => speakFromBtn(speakBtn);
+                // Si la voz automatica esta activa, reproducir inmediatamente.
+                if (voiceEnabled && speakOnlyText.trim()) {
+                    // Pequeno delay para que el usuario vea el boton "playing"
+                    setTimeout(() => speakFromBtn(speakBtn), 250);
+                }
+            };
+
+            const speakFromBtn = async (btn) => {
+                if (!speakOnlyText.trim()) return;
+                btn.classList.add("playing");
+                btn.textContent = "🔉";
+                try {
+                    await speakText(speakOnlyText);
+                } finally {
+                    btn.classList.remove("playing");
+                    btn.textContent = "🔊";
+                }
+            };
+
             // Timeout global: si el stream no termina en 60s (o no llega
             // ningun token en 15s), lo abortamos y mostramos un mensaje
             // de error. Esto evita que el usuario vea la respuesta
@@ -110,13 +282,13 @@
             const streamTimer = setTimeout(() => {
                 streamAborted = true;
                 if (typingDots.parentNode) typingDots.remove();
-                span.textContent = "Disculpa, la respuesta tardó demasiado. Por favor, inténtalo de nuevo.";
+                textContainer.textContent = "Disculpa, la respuesta tardó demasiado. Por favor, inténtalo de nuevo.";
                 console.warn("Stream timeout global");
             }, STREAM_TIMEOUT_MS);
             const firstTokenTimer = setTimeout(() => {
                 if (!firstTokenSeen) {
                     if (typingDots.parentNode) typingDots.remove();
-                    span.textContent = "Disculpa, el profesor está tardando en responder. Inténtalo de nuevo.";
+                    textContainer.textContent = "Disculpa, el profesor está tardando en responder. Inténtalo de nuevo.";
                     console.warn("First token timeout");
                 }
             }, FIRST_TOKEN_TIMEOUT_MS);
@@ -132,9 +304,9 @@
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder("utf-8");
                 let buffer = "";
-                // Cuando llega un chunk grande (ej. 200 chars de golpe), lo
-                // animamos letra por letra para que la escritura se sienta
-                // fluida y no aparezca "todo de una".
+                // Acumulamos el delta al texto crudo y dejamos que
+                // scheduleRender() haga el trabajo de re-renderizar el
+                // markdown con throttling (microtask).
                 const animateDelta = (delta) => {
                     if (!firstTokenSeen) {
                         firstTokenSeen = true;
@@ -142,31 +314,8 @@
                         // Limpiar el timeout del primer token: ya llego el primero.
                         clearTimeout(firstTokenTimer);
                     }
-                    // Para chunks pequenos (<=6 chars) los pintamos directo.
-                    // Para chunks grandes, los partimos en grupos de 3-5 chars
-                    // y los pintamos con un pequeño delay entre cada grupo.
-                    const CHUNK_SIZE = 4;
-                    if (delta.length <= CHUNK_SIZE) {
-                        fullText += delta;
-                        span.textContent = fullText;
-                        messagesEl.scrollTop = messagesEl.scrollHeight;
-                        return;
-                    }
-                    // Animar progresivamente con requestAnimationFrame para
-                    // que se vea como escritura natural.
-                    let i = 0;
-                    const step = () => {
-                        if (i >= delta.length) return;
-                        const slice = delta.slice(i, i + CHUNK_SIZE);
-                        fullText += slice;
-                        span.textContent = fullText;
-                        messagesEl.scrollTop = messagesEl.scrollHeight;
-                        i += CHUNK_SIZE;
-                        // ~16ms entre cada grupo = ~60fps, suficiente para
-                        // que el usuario vea la animacion de escribir.
-                        setTimeout(step, 18);
-                    };
-                    step();
+                    fullText += delta;
+                    scheduleRender();
                 };
                 while (true) {
                     const { value, done } = await reader.read();
@@ -195,7 +344,7 @@
                                 clearTimeout(streamTimer);
                                 clearTimeout(firstTokenTimer);
                                 fullText = obj.text || fullText;
-                                span.textContent = fullText;
+                                scheduleRender();
                                 // Renderizar botones del paso (niveles, modos, acciones rapidas)
                                 if (obj.botones && obj.botones.length) {
                                     const cont = document.createElement("div");
@@ -217,19 +366,19 @@
                                     messagesEl.scrollTop = messagesEl.scrollHeight;
                                 }
                                 if (obj.paso) updateLevelBadge(obj.paso);
+                                scheduleRender();
+                                finalizeResponse();
                             } else if (obj.error) {
                                 if (typingDots.parentNode) typingDots.remove();
                                 clearTimeout(streamTimer);
                                 clearTimeout(firstTokenTimer);
-                                span.textContent = "Error: " + obj.error;
+                                textContainer.textContent = "Error: " + obj.error;
                             }
                         } catch (e) {
                             // ignore parse errors
                         }
                     }
                 }
-                // Configurar speakBtn con el texto completo al final
-                speakBtn.onclick = () => speakText(fullText);
                 msg.classList.remove("streaming");
             } catch (e) {
                 // Si el streaming falla, fallback al endpoint clasico
@@ -243,15 +392,15 @@
                     if (typingDots.parentNode) typingDots.remove();
                     clearTimeout(streamTimer);
                     clearTimeout(firstTokenTimer);
-                    span.textContent = d2.message || "";
                     fullText = d2.message || "";
-                    speakBtn.onclick = () => speakText(fullText);
+                    scheduleRender();
                     if (d2.paso) updateLevelBadge(d2.paso);
+                    finalizeResponse();
                 } catch (e2) {
                     if (typingDots.parentNode) typingDots.remove();
                     clearTimeout(streamTimer);
                     clearTimeout(firstTokenTimer);
-                    span.textContent = "Error de conexión. Por favor, inténtalo de nuevo.";
+                    textContainer.textContent = "Error de conexión. Por favor, inténtalo de nuevo.";
                 }
             } finally {
                 // Limpiar el typingDots si por alguna razon quedo visible
@@ -299,15 +448,31 @@
         function addMessage(text, sender, botones) {
             const msg = document.createElement("div");
             msg.className = `message ${sender}`;
-            const span = document.createElement("span");
-            span.textContent = text;
-            msg.appendChild(span);
+            // Para el bot renderizamos markdown (codigo, negritas, etc.)
+            // Para el user lo dejamos como texto plano.
             if (sender === "bot") {
+                const { container, speakText: clean } = renderMarkdown(text || "");
+                msg.appendChild(container);
                 const speakBtn = document.createElement("button");
                 speakBtn.className = "speak-btn";
                 speakBtn.textContent = "🔊";
-                speakBtn.onclick = () => speakText(text);
+                speakBtn.onclick = () => {
+                    speakBtn.classList.add("playing");
+                    speakBtn.textContent = "🔉";
+                    speakText(clean).finally(() => {
+                        speakBtn.classList.remove("playing");
+                        speakBtn.textContent = "🔊";
+                    });
+                };
                 msg.appendChild(speakBtn);
+                // Auto-play si la voz esta activa
+                if (voiceEnabled && clean.trim()) {
+                    setTimeout(() => speakBtn.click(), 250);
+                }
+            } else {
+                const span = document.createElement("span");
+                span.textContent = text || "";
+                msg.appendChild(span);
             }
             messagesEl.appendChild(msg);
             if (botones && botones.length && sender === "bot") {
