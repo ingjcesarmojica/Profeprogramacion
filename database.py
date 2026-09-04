@@ -50,7 +50,7 @@ def guardar_estudiante(datos):
         registro = {
             "nombre": datos.get("nombre", ""),
             "email": datos.get("email", ""),
-            "nivel": datos.get("nivel", "A1"),
+            "nivel": datos.get("nivel", "INICIO"),
             "idioma_nativo": datos.get("idioma_nativo", "es"),
             "objetivo": datos.get("objetivo", ""),
             "modo_actual": datos.get("modo_actual", ""),
@@ -107,8 +107,8 @@ def guardar_conversacion(datos):
             "estudiante_nombre": datos.get("nombre", ""),
             "mensaje_usuario": datos.get("mensaje_usuario", ""),
             "respuesta_agente": datos.get("respuesta_agente", ""),
-            "modo": datos.get("modo", "conversation"),
-            "nivel": datos.get("nivel", "A1"),
+            "modo": datos.get("modo", "conceptos"),
+            "nivel": datos.get("nivel", "INICIO"),
             "created_at": datetime.utcnow().isoformat(),
         }
 
@@ -138,7 +138,7 @@ def guardar_vocabulario(datos):
             "estudiante_email": datos.get("email", ""),
             "palabra": datos.get("palabra", ""),
             "traduccion": datos.get("traduccion", ""),
-            "nivel": datos.get("nivel", "A1"),
+            "nivel": datos.get("nivel", "INICIO"),
             "ejemplo": datos.get("ejemplo", ""),
             "repasos": 0,
             "created_at": datetime.utcnow().isoformat(),
@@ -171,7 +171,7 @@ def guardar_error_estudiante(datos):
             "error": datos.get("error", ""),
             "correccion": datos.get("correccion", ""),
             "tema": datos.get("tema", ""),
-            "nivel": datos.get("nivel", "A1"),
+            "nivel": datos.get("nivel", "INICIO"),
             "created_at": datetime.utcnow().isoformat(),
         }
 
@@ -200,7 +200,7 @@ def guardar_leccion_completada(datos):
         registro = {
             "estudiante_email": datos.get("email", ""),
             "tema": datos.get("tema", ""),
-            "nivel": datos.get("nivel", "A1"),
+            "nivel": datos.get("nivel", "INICIO"),
             "score": datos.get("score", 0),
             "modo": datos.get("modo", ""),
             "created_at": datetime.utcnow().isoformat(),

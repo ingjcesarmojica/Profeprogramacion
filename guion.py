@@ -1,9 +1,10 @@
 """
-Guion Conversacional - Agente IA Profesor de Inglés "Mr. James"
-EnglishAI Tutor
+Guion Conversacional - Agente IA Profesor de Programación "Profesor Byte"
+CodeAI Tutor
 
-Flujo conversacional para clases de inglés.
+Flujo conversacional para clases de programación en español.
 El estudiante llega, se identifica, evalúa su nivel, elige modo y aprende.
+7 niveles: Inicio, Novato, Aprendiz, Técnico, Tecnólogo, Ingeniero, Ingeniero de IA.
 """
 
 import re
@@ -13,40 +14,65 @@ from zoneinfo import ZoneInfo
 # Zona horaria por defecto (UTC)
 TZ_DEFAULT = ZoneInfo("UTC")
 
-# Niveles CEFR disponibles
-NIVELES = ["A1", "A2", "B1", "B2", "C1", "C2"]
+# Niveles de programación disponibles (del más básico al más avanzado)
+NIVELES = [
+    "INICIO",
+    "NOVATO",
+    "APRENDIZ",
+    "TECNICO",
+    "TECNOLOGO",
+    "INGENIERO",
+    "INGENIERO_IA",
+]
 
-# Modos de aprendizaje disponibles
+# Descripción de cada nivel
+NIVELES_DESCRIPCION = {
+    "INICIO":      "Inicio - sin experiencia previa, primeros pasos en programación",
+    "NOVATO":      "Novato - conceptos básicos y primer lenguaje",
+    "APRENDIZ":    "Aprendiz - estructuras de control, funciones y POO inicial",
+    "TECNICO":     "Técnico - frameworks, bases de datos y desarrollo web/móvil",
+    "TECNOLOGO":   "Tecnólogo - arquitectura de software, APIs y despliegue",
+    "INGENIERO":   "Ingeniero - sistemas distribuidos, DevOps y buenas prácticas",
+    "INGENIERO_IA":"Ingeniero de IA - machine learning, deep learning y MLOps",
+}
+
+# Modos de aprendizaje disponibles (en español)
 MODOS = {
-    "conversation": {
-        "id": "conversation",
-        "nombre": "Conversation",
-        "emoji": "💬",
-        "descripcion": "Free talk - practice speaking about any topic",
+    "conceptos": {
+        "id": "conceptos",
+        "nombre": "Conceptos",
+        "emoji": "💡",
+        "descripcion": "Aprende los conceptos teóricos de programación con ejemplos",
     },
-    "grammar": {
-        "id": "grammar",
-        "nombre": "Grammar",
-        "emoji": "📝",
-        "descripcion": "Learn grammar rules and practice with exercises",
+    "practica": {
+        "id": "practica",
+        "nombre": "Práctica",
+        "emoji": "⌨️",
+        "descripcion": "Resuelve ejercicios y retos de programación paso a paso",
     },
-    "vocabulary": {
-        "id": "vocabulary",
-        "nombre": "Vocabulary",
-        "emoji": "📚",
-        "descripcion": "Learn new words and phrases by topic",
+    "proyectos": {
+        "id": "proyectos",
+        "nombre": "Proyectos",
+        "emoji": "🚀",
+        "descripcion": "Construye proyectos reales guiados por el profesor",
     },
     "quiz": {
         "id": "quiz",
         "nombre": "Quiz",
         "emoji": "🎯",
-        "descripcion": "Test your knowledge with interactive questions",
+        "descripcion": "Pon a prueba tus conocimientos con preguntas interactivas",
     },
-    "pronunciation": {
-        "id": "pronunciation",
-        "nombre": "Pronunciation",
-        "emoji": "🗣️",
-        "descripcion": "Practice pronunciation by repeating phrases",
+    "codigo": {
+        "id": "codigo",
+        "nombre": "Código",
+        "emoji": "🧩",
+        "descripcion": "Te ayudo a entender, depurar y mejorar tu código",
+    },
+    "ia": {
+        "id": "ia",
+        "nombre": "IA",
+        "emoji": "🤖",
+        "descripcion": "Aprende sobre inteligencia artificial, machine learning y deep learning",
     },
 }
 
@@ -55,7 +81,7 @@ PASOS = {
     "welcome": {
         "id": "welcome",
         "siguiente": "ask_name",
-        "mensaje": "Hello! I'm Mr. James, your English AI tutor. I'm here to help you learn and practice English 24/7. Let's get started! What's your name?",
+        "mensaje": "¡Hola! Soy el Profesor Byte, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?",
         "validar": None,
         "botones": None,
         "campo": None,
@@ -63,7 +89,7 @@ PASOS = {
     "ask_name": {
         "id": "ask_name",
         "siguiente": "ask_level",
-        "mensaje": "Nice to meet you, {nombre}! Now, I need to know your English level so I can adapt the class to you. What's your current level? If you're not sure, just pick the one that feels closest.",
+        "mensaje": "¡Mucho gusto, {nombre}! Para adaptar las clases a ti, necesito saber tu nivel actual de programación. ¿En qué nivel te encuentras? Si no estás seguro, elige el que más se parezca a ti.",
         "validar": "nombre",
         "botones": None,
         "campo": "student_name",
@@ -71,44 +97,48 @@ PASOS = {
     "ask_level": {
         "id": "ask_level",
         "siguiente": "ask_goal",
-        "mensaje": "Great, {nombre}! Now, what's your main goal for learning English? This will help me personalize your classes.",
+        "mensaje": "¡Perfecto, {nombre}! Selecciona tu nivel de programación:",
         "validar": "nivel",
         "botones": [
-            {"texto": "Travel", "valor": "A1", "descripcion": "Beginner - Basic phrases"},
-            {"texto": "A2", "valor": "A2", "descripcion": "Elementary - Simple conversations"},
-            {"texto": "B1", "valor": "B1", "descripcion": "Intermediate - Daily situations"},
-            {"texto": "B2", "valor": "B2", "descripcion": "Upper-Intermediate - Fluent conversations"},
-            {"texto": "C1", "valor": "C1", "descripcion": "Advanced - Complex topics"},
-            {"texto": "C2", "valor": "C2", "descripcion": "Proficiency - Near-native level"},
+            {"texto": "🌱 Inicio",        "valor": "INICIO",       "descripcion": "Sin experiencia previa, primer contacto"},
+            {"texto": "🐣 Novato",        "valor": "NOVATO",       "descripcion": "Conceptos básicos y primer lenguaje"},
+            {"texto": "📚 Aprendiz",      "valor": "APRENDIZ",     "descripcion": "Estructuras de control, funciones y POO"},
+            {"texto": "🛠️ Técnico",       "valor": "TECNICO",      "descripcion": "Frameworks, bases de datos y desarrollo web/móvil"},
+            {"texto": "🎓 Tecnólogo",     "valor": "TECNOLOGO",    "descripcion": "Arquitectura de software, APIs y despliegue"},
+            {"texto": "🏗️ Ingeniero",     "valor": "INGENIERO",    "descripcion": "Sistemas distribuidos, DevOps y buenas prácticas"},
+            {"texto": "🤖 Ingeniero IA",  "valor": "INGENIERO_IA", "descripcion": "Machine learning, deep learning y MLOps"},
         ],
         "campo": "student_level",
     },
     "ask_goal": {
         "id": "ask_goal",
         "siguiente": "select_mode",
-        "mensaje": "Excellent! And what's your main goal?",
+        "mensaje": "¡Excelente! ¿Cuál es tu objetivo principal al aprender a programar? Esto me ayudará a personalizar tu aprendizaje.",
         "validar": None,
         "botones": [
-            {"texto": "✈️ Travel", "valor": "travel", "descripcion": "Communicate while traveling"},
-            {"texto": "💼 Work", "valor": "work", "descripcion": "English for professional contexts"},
-            {"texto": "🎓 Studies", "valor": "studies", "descripcion": "Academic English"},
-            {"texto": "📝 Exams", "valor": "exams", "descripcion": "Pass a specific exam"},
-            {"texto": "🎬 Entertainment", "valor": "entertainment", "descripcion": "Movies, music, books"},
-            {"texto": "🌎 Personal", "valor": "personal", "descripcion": "General improvement"},
+            {"texto": "💼 Trabajar como desarrollador", "valor": "trabajo",        "descripcion": "Conseguir empleo en tecnología"},
+            {"texto": "🎓 Estudios / Universidad",       "valor": "estudios",       "descripcion": "Reforzar lo aprendido en la carrera"},
+            {"texto": "🚀 Crear mi propio proyecto",     "valor": "emprendimiento", "descripcion": "Construir una startup o producto"},
+            {"texto": "🤖 Aprender Inteligencia Artificial", "valor": "ia",         "descripcion": "Machine learning, deep learning, LLMs"},
+            {"texto": "🌐 Desarrollo web",               "valor": "web",            "descripcion": "Frontend, backend o full stack"},
+            {"texto": "🎮 Crear videojuegos",            "valor": "videojuegos",    "descripcion": "Desarrollo de juegos con Unity, Godot, etc."},
+            {"texto": "📊 Análisis de datos",            "valor": "datos",          "descripcion": "Ciencia de datos y visualización"},
+            {"texto": "🧑‍💻 Curiosidad / Hobby",          "valor": "hobby",          "descripcion": "Aprender por diversión y crecimiento personal"},
         ],
         "campo": "student_goal",
     },
     "select_mode": {
         "id": "select_mode",
         "siguiente": "in_session",
-        "mensaje": "Perfect! You're all set, {nombre}. What would you like to practice today?",
+        "mensaje": "¡Todo listo, {nombre}! ¿Qué te gustaría practicar hoy?",
         "validar": None,
         "botones": [
-            {"texto": "💬 Conversation", "valor": "conversation", "descripcion": "Free talk about any topic"},
-            {"texto": "📝 Grammar", "valor": "grammar", "descripcion": "Learn and practice grammar"},
-            {"texto": "📚 Vocabulary", "valor": "vocabulary", "descripcion": "New words and phrases"},
-            {"texto": "🎯 Quiz", "valor": "quiz", "descripcion": "Test your knowledge"},
-            {"texto": "🗣️ Pronunciation", "valor": "pronunciation", "descripcion": "Practice pronunciation"},
+            {"texto": "💡 Conceptos",  "valor": "conceptos",  "descripcion": "Teoría con ejemplos claros"},
+            {"texto": "⌨️ Práctica",   "valor": "practica",   "descripcion": "Ejercicios paso a paso"},
+            {"texto": "🚀 Proyectos",  "valor": "proyectos",  "descripcion": "Proyectos guiados reales"},
+            {"texto": "🎯 Quiz",       "valor": "quiz",       "descripcion": "Preguntas para evaluar tu nivel"},
+            {"texto": "🧩 Código",     "valor": "codigo",     "descripcion": "Reviso, explico y depuro tu código"},
+            {"texto": "🤖 IA",         "valor": "ia",         "descripcion": "Aprende sobre inteligencia artificial"},
         ],
         "campo": "current_mode",
     },
@@ -123,22 +153,23 @@ PASOS = {
     "change_mode": {
         "id": "change_mode",
         "siguiente": "in_session",
-        "mensaje": "Sure! What would you like to practice now?",
+        "mensaje": "¡Claro! ¿Qué quieres practicar ahora?",
         "validar": None,
         "botones": [
-            {"texto": "💬 Conversation", "valor": "conversation"},
-            {"texto": "📝 Grammar", "valor": "grammar"},
-            {"texto": "📚 Vocabulary", "valor": "vocabulary"},
-            {"texto": "🎯 Quiz", "valor": "quiz"},
-            {"texto": "🗣️ Pronunciation", "valor": "pronunciation"},
-            {"texto": "📊 My Progress", "valor": "progress"},
+            {"texto": "💡 Conceptos",  "valor": "conceptos"},
+            {"texto": "⌨️ Práctica",   "valor": "practica"},
+            {"texto": "🚀 Proyectos",  "valor": "proyectos"},
+            {"texto": "🎯 Quiz",       "valor": "quiz"},
+            {"texto": "🧩 Código",     "valor": "codigo"},
+            {"texto": "🤖 IA",         "valor": "ia"},
+            {"texto": "📊 Mi progreso","valor": "progress"},
         ],
         "campo": "current_mode",
     },
     "ask_question": {
         "id": "ask_question",
         "siguiente": "in_session",
-        "mensaje": "Of course! What would you like to know? You can ask me anything about English: grammar, vocabulary, pronunciation, expressions, etc.",
+        "mensaje": "¡Por supuesto! Pregúntame lo que quieras sobre programación: algoritmos, lenguajes, frameworks, buenas prácticas, IA, etc.",
         "validar": None,
         "botones": None,
         "campo": None,
@@ -146,7 +177,7 @@ PASOS = {
     "goodbye": {
         "id": "goodbye",
         "siguiente": None,
-        "mensaje": "It was a pleasure teaching you today, {nombre}! Remember, practice makes perfect. Come back whenever you want to continue learning. Have a great day!",
+        "mensaje": "¡Fue un placer enseñarte hoy, {nombre}! Recuerda: en programación, la práctica constante hace al maestro. Vuelve cuando quieras seguir aprendiendo. ¡Mucho éxito en tu camino como desarrollador! 👨‍💻",
         "validar": None,
         "botones": None,
         "campo": None,
@@ -171,19 +202,19 @@ def formatear_mensaje(paso, datos):
 
 
 def obtener_momento_del_dia():
-    """Retorna la parte variable del saludo en inglés."""
+    """Retorna la parte variable del saludo en español."""
     hora = datetime.now(TZ_DEFAULT).hour
     if 5 <= hora < 12:
-        return "morning"
-    elif 12 <= hora < 18:
-        return "afternoon"
+        return "Buenos días"
+    elif 12 <= hora < 19:
+        return "Buenas tardes"
     else:
-        return "evening"
+        return "Buenas noches"
 
 
 def validar_nombre(respuesta):
     """Valida el nombre del estudiante."""
-    MENSAJE = "I couldn't catch your name clearly. Could you please tell me your name again? Type your first name."
+    MENSAJE = "No pude leer bien tu nombre. ¿Podrías decírmelo de nuevo? Escribe tu nombre."
     if not respuesta:
         return False, MENSAJE
     respuesta = respuesta.strip()
@@ -199,37 +230,87 @@ def validar_nombre(respuesta):
 
 
 def validar_nivel(respuesta):
-    """Valida el nivel CEFR del estudiante (A1-C2)."""
-    MENSAJE = "Please choose a level between A1 and C2. If you're not sure, pick A1 if you're starting, B1 if you know some English, or C1 if you're advanced."
+    """Valida el nivel de programación del estudiante."""
+    MENSAJE = (
+        "Por favor, elige un nivel válido: Inicio, Novato, Aprendiz, Técnico, "
+        "Tecnólogo, Ingeniero o Ingeniero de IA. Si estás empezando, elige Inicio."
+    )
     if not respuesta:
         return False, MENSAJE
-    respuesta = respuesta.strip().upper()
-    match = re.search(r"\b([ABC][12])\b", respuesta)
-    if match:
-        return True, match.group(1)
+    respuesta_limpia = respuesta.strip()
+    # Quitar acentos para tolerar variantes
+    sin_acentos = (
+        respuesta_limpia.upper()
+        .replace("Á", "A").replace("É", "E").replace("Í", "I")
+        .replace("Ó", "O").replace("Ú", "U")
+    )
+    # Coincidencia exacta (case-insensitive)
+    for nivel in NIVELES:
+        if sin_acentos == nivel:
+            return True, nivel
+    # Tolerar "Ingeniero IA" -> "INGENIERO_IA" (espacio o guion)
+    sin_acentos_normalizado = sin_acentos.replace(" ", "_").replace("-", "_")
+    for nivel in NIVELES:
+        if sin_acentos_normalizado == nivel:
+            return True, nivel
+    # Variantes comunes en español
+    alias = {
+        "PRINCIPIANTE": "INICIO",
+        "BEGINNER": "INICIO",
+        "BASICO": "NOVATO",
+        "BÁSICO": "NOVATO",
+        "INTERMEDIO": "APRENDIZ",
+        "AVANZADO": "INGENIERO",
+        "IA": "INGENIERO_IA",
+        "INTELIGENCIA_ARTIFICIAL": "INGENIERO_IA",
+        "INTELIGENCIA ARTIFICIAL": "INGENIERO_IA",
+        "MACHINE_LEARNING": "INGENIERO_IA",
+        "MACHINE LEARNING": "INGENIERO_IA",
+        "ML": "INGENIERO_IA",
+        "DEEP_LEARNING": "INGENIERO_IA",
+        "DEEP LEARNING": "INGENIERO_IA",
+        "TECNICO": "TECNICO",
+        "TECNOLOGO": "TECNOLOGO",
+    }
+    if sin_acentos_normalizado in alias:
+        return True, alias[sin_acentos_normalizado]
+    if sin_acentos in alias:
+        return True, alias[sin_acentos]
     return False, MENSAJE
 
 
 def validar_modo(respuesta):
     """Valida el modo de aprendizaje elegido."""
-    MENSAJE = "Please choose one of the available modes: Conversation, Grammar, Vocabulary, Quiz, or Pronunciation."
+    MENSAJE = (
+        "Por favor, elige uno de los modos disponibles: Conceptos, Práctica, "
+        "Proyectos, Quiz, Código o IA."
+    )
     if not respuesta:
         return False, MENSAJE
     respuesta = respuesta.strip().lower()
-    modos_validos = ["conversation", "grammar", "vocabulary", "quiz", "pronunciation", "progress"]
+    modos_validos = ["conceptos", "practica", "proyectos", "quiz", "codigo", "ia", "progress"]
     if respuesta in modos_validos:
         return True, respuesta
+    # Alias en español y abreviaturas
     mapeo = {
-        "gramatica": "grammar",
-        "gramática": "grammar",
-        "vocabulario": "vocabulary",
-        "conversacion": "conversation",
-        "conversación": "conversation",
-        "pronunciacion": "pronunciation",
-        "pronunciación": "pronunciation",
+        "concepto": "conceptos",
+        "teoria": "conceptos",
+        "teoría": "conceptos",
+        "practicas": "practica",
+        "prácticas": "practica",
+        "ejercicio": "practica",
+        "ejercicios": "practica",
+        "proyecto": "proyectos",
         "cuestionario": "quiz",
         "test": "quiz",
         "examen": "quiz",
+        "codigos": "codigo",
+        "códigos": "codigo",
+        "programacion": "codigo",
+        "programación": "codigo",
+        "inteligencia artificial": "ia",
+        "machine learning": "ia",
+        "deep learning": "ia",
         "progreso": "progress",
         "avance": "progress",
     }
@@ -258,7 +339,7 @@ def obtener_modos():
 
 
 def obtener_niveles():
-    """Retorna la lista de niveles CEFR."""
+    """Retorna la lista de niveles de programación."""
     return NIVELES.copy()
 
 
@@ -270,4 +351,9 @@ def es_modo_valido(modo):
 def obtener_info_modo(modo_id):
     """Obtiene la información de un modo por su ID."""
     return MODOS.get(modo_id)
+
+
+def descripcion_nivel(nivel):
+    """Retorna la descripción legible de un nivel."""
+    return NIVELES_DESCRIPCION.get(nivel, "")
 

@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mr. James - English AI Tutor</title>
+    <title>Profesor Byte - Tutor de Programación IA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -60,7 +60,7 @@
         </div>
         <div class="messages" id="chatMessages"></div>
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="Type your message in English..." autocomplete="off">
+            <input type="text" id="userInput" placeholder="Escribe tu pregunta de programación..." autocomplete="off">
             <button id="sendBtn" onclick="sendMessage()">➤</button>
         </div>
     </div>
@@ -88,7 +88,7 @@
                 if (data.paso) updateLevelBadge(data.paso);
             } catch (e) {
                 hideTyping();
-                addMessage("Sorry, connection error. Please try again.", "bot");
+                addMessage("Error de conexión. Por favor, inténtalo de nuevo.", "bot");
             }
             isProcessing = false;
         }
@@ -98,6 +98,11 @@
             isProcessing = true;
             addMessage(texto, "user");
             showTyping();
+            // Si el usuario selecciona un nivel, lo guardamos localmente para el badge
+            const nivelesValidos = ["INICIO","NOVATO","APRENDIZ","TECNICO","TECNOLOGO","INGENIERO","INGENIERO_IA"];
+            if (nivelesValidos.includes(action)) {
+                sessionStorage.setItem("nivel", action);
+            }
             try {
                 const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: action }) });
                 const data = await res.json();
@@ -106,7 +111,7 @@
                 if (data.paso) updateLevelBadge(data.paso);
             } catch (e) {
                 hideTyping();
-                addMessage("Sorry, error. Try again.", "bot");
+                addMessage("Disculpa, ocurrió un error. Inténtalo de nuevo.", "bot");
             }
             isProcessing = false;
         }
@@ -173,8 +178,8 @@
 
         function updateLevelBadge(paso) {
             if (paso === "in_session") {
-                const nivel = sessionStorage.getItem("nivel") || "A1";
-                levelBadge.textContent = `Level: ${nivel}`;
+                const nivel = sessionStorage.getItem("nivel") || "INICIO";
+                levelBadge.textContent = `Nivel: ${nivel}`;
             }
         }
 

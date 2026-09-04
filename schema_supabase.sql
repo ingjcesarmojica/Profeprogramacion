@@ -1,5 +1,6 @@
 -- ================================================
--- SCHEMA: Base de datos EnglishAI Tutor
+-- SCHEMA: Base de datos CodeAI Tutor - Profesor Byte
+-- 7 niveles de programación: INICIO, NOVATO, APRENDIZ, TECNICO, TECNOLOGO, INGENIERO, INGENIERO_IA
 -- Supabase (PostgreSQL)
 -- Ejecutar en SQL Editor de Supabase Dashboard
 -- ================================================
@@ -9,7 +10,7 @@ CREATE TABLE IF NOT EXISTS estudiantes (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     nombre TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    nivel TEXT DEFAULT ''A1'' CHECK (nivel IN (''A1'',''A2'',''B1'',''B2'',''C1'',''C2'')),
+    nivel TEXT DEFAULT ''INICIO'' CHECK (nivel IN (''INICIO'',''NOVATO'',''APRENDIZ'',''TECNICO'',''TECNOLOGO'',''INGENIERO'',''INGENIERO_IA'')),
     idioma_nativo TEXT DEFAULT ''es'',
     objetivo TEXT,
     modo_actual TEXT,
@@ -25,8 +26,8 @@ CREATE TABLE IF NOT EXISTS conversaciones (
     estudiante_nombre TEXT,
     mensaje_usuario TEXT,
     respuesta_agente TEXT,
-    modo TEXT DEFAULT ''conversation'',
-    nivel TEXT DEFAULT ''A1'',
+    modo TEXT DEFAULT ''conceptos'',
+    nivel TEXT DEFAULT ''INICIO'',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS lecciones_completadas (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     estudiante_email TEXT NOT NULL,
     tema TEXT NOT NULL,
-    nivel TEXT DEFAULT ''A1'',
+    nivel TEXT DEFAULT ''INICIO'',
     score INTEGER DEFAULT 0,
     modo TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -47,7 +48,7 @@ CREATE TABLE IF NOT EXISTS vocabulario_aprendido (
     estudiante_email TEXT NOT NULL,
     palabra TEXT NOT NULL,
     traduccion TEXT,
-    nivel TEXT DEFAULT ''A1'',
+    nivel TEXT DEFAULT ''INICIO'',
     ejemplo TEXT,
     repasos INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -60,7 +61,7 @@ CREATE TABLE IF NOT EXISTS errores_estudiante (
     error TEXT NOT NULL,
     correccion TEXT,
     tema TEXT,
-    nivel TEXT DEFAULT ''A1'',
+    nivel TEXT DEFAULT ''INICIO'',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

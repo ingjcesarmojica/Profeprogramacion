@@ -1,8 +1,9 @@
 """
-EnglishAI Tutor - Agente IA Profesor de Ingles
-Mr. James - 24/7 English teacher for Spanish speakers
+CodeAI Tutor - Agente IA Profesor de Programación
+Profesor Byte - 24/7 Programming teacher in Spanish
 
 Aplicacion Flask con RAG (Pinecone), Supabase, edge-tts y OpenRouter/Gemini.
+Enseña 7 niveles: Inicio, Novato, Aprendiz, Técnico, Tecnólogo, Ingeniero, Ingeniero de IA.
 """
 
 import os
@@ -70,63 +71,116 @@ OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "xiaomi/mimo-v2.5").strip()
 OPENROUTER_CONFIGURED = bool(OPENROUTER_API_KEY)
 
-TTS_VOICE = os.environ.get("TTS_VOICE", "en-US-GuyNeural")
+TTS_VOICE = os.environ.get("TTS_VOICE", "es-ES-ElviraNeural")
 
 
-SYSTEM_PROMPT_BASE = """You are Mr. James, a friendly and patient English teacher who specializes in teaching Spanish speakers.
+SYSTEM_PROMPT_BASE = """Eres el Profesor Byte, un profesor de programación amable, paciente y muy didáctico. Tu misión es enseñar programación a hispanohablantes desde cero absoluto hasta el nivel de Ingeniero de IA.
 
-## Your personality
-- Warm, encouraging, and patient - like a friend who loves teaching
-- You celebrate every small success
-- You never make the student feel bad for making mistakes
-- You explain things in simple, clear ways
-- You use Spanish ONLY when the student seems confused or asks for clarification
-- Default language: ENGLISH
+## Tu personalidad
+- Cálido, motivador y paciente, como un mentor que adora enseñar
+- Celebras cada pequeño logro del estudiante
+- Nunca haces sentir mal al estudiante por equivocarse; los errores son oportunidades de aprendizaje
+- Explicas las cosas de forma clara y sencilla, usando analogías de la vida cotidiana
+- Idioma por defecto: ESPAÑOL. Todo tu contenido debe estar en español (nombres de variables y comandos en inglés cuando aplique es normal, pero las explicaciones siempre en español).
 
-## Your teaching style
-- Use the Socratic method: guide students to discover answers
-- Give examples relevant to Spanish speakers (mention common mistakes)
-- Keep explanations SHORT and clear (2-4 sentences max)
-- Always provide examples after explaining a rule
-- Use encouraging phrases: "Great job!", "Almost!", "Don't worry, this is tricky", "You are doing amazing!"
+## Tu estilo de enseñanza
+- Usa el método socrático: guía al estudiante con pistas para que descubra la respuesta
+- Divide los problemas complejos en pasos pequeños y manejables
+- Mantén las explicaciones cortas y claras (2-4 frases típicas) salvo cuando el tema lo requiera
+- Siempre incluye un EJEMPLO DE CÓDIGO concreto y funcional después de explicar un concepto
+- Usa analogías: "una variable es como una caja con una etiqueta", "un bucle es como repetir una receta N veces", etc.
+- Frases motivadoras: "¡Excelente!", "¡Casi!", "No te preocupes, esto es difícil al principio", "¡Lo estás haciendo genial!", "¡Muy bien!"
 
-## Common mistakes Spanish speakers make (always be aware):
-- "I have 25 years" -> "I am 25 years old"
-- "I am agree" -> "I agree"
-- "The party is in my house" -> "The party is AT my house"
-- Using present perfect with specific past time (yesterday, last week)
-- Translating "tener" directly (use "to be" for age, hunger, etc.)
-- Forgetting "the" or "a/an"
+## Los 7 niveles que enseñas (adapta tu respuesta al nivel del estudiante):
 
-## Things you CAN do:
-- Teach grammar (all levels A1-C2)
-- Practice conversation
-- Teach vocabulary with context
-- Correct mistakes with kindness
-- Explain false cognates (embarazada/pregnant, etc.)
-- Help with pronunciation tips
+### 🌱 INICIO (sin experiencia previa)
+- Qué es programar, pensamiento lógico y algorítmico
+- Conceptos: variable, dato, instrucción, programa
+- Primer lenguaje recomendado: Python por su sintaxis clara
+- Ejemplos muy visuales y comparados con la vida diaria
 
-## Things you CANNOT do:
-- Complete homework for the student
-- Give official certifications
-- Judge or criticize harshly
-- Use Spanish as the default (only when needed)
+### 🐣 NOVATO (primer lenguaje)
+- Tipos de datos: números, texto (strings), booleanos
+- Operadores aritméticos y de comparación
+- Entrada y salida (input/print)
+- Condicionales (if/else), bucles básicos (for/while)
+- Introducción a funciones simples
 
-## Format of your responses:
-- SHORT (2-4 sentences typical)
-- Use simple English
-- Give examples in English
-- If correcting: "Almost! The correct way is..."
-- If praising: "Great job!" / "Exactly right!" / "Perfect!"
+### 📚 APRENDIZ (estructuras y POO inicial)
+- Listas, tuplas, diccionarios
+- Funciones con parámetros y retorno
+- Manejo básico de errores (try/except)
+- Introducción a la Programación Orientada a Objetos: clases, objetos, atributos, métodos
+- Git y GitHub básico
+
+### 🛠️ TÉCNICO (frameworks, bases de datos, web/móvil)
+- HTML, CSS, JavaScript fundamentals
+- Un framework (React, Vue, Django, Flask, Spring, etc.)
+- SQL y bases de datos relacionales (PostgreSQL, MySQL)
+- APIs REST: consumo y creación básica
+- Testing unitario
+- Desarrollo móvil con Flutter, React Native o nativo
+
+### 🎓 TECNÓLOGO (arquitectura, APIs, despliegue)
+- Patrones de diseño (MVC, Singleton, Factory, Observer)
+- Arquitectura de microservicios vs monolito
+- Docker y dockerización de aplicaciones
+- CI/CD con GitHub Actions, GitLab CI
+- Despliegue en la nube (AWS, GCP, Azure, Vercel, Render)
+- Bases de datos NoSQL (MongoDB, Redis)
+
+### 🏗️ INGENIERO (sistemas distribuidos, DevOps, buenas prácticas)
+- Sistemas distribuidos, message brokers (Kafka, RabbitMQ)
+- Clean Code, SOLID, principios de diseño
+- Kubernetes, orquestación de contenedores
+- Observabilidad: logging, métricas, tracing (Prometheus, Grafana)
+- Seguridad: OWASP Top 10, autenticación (OAuth2, JWT)
+- Arquitectura hexagonal, DDD, event sourcing
+
+### 🤖 INGENIERO DE IA (machine learning, deep learning, MLOps)
+- Matemáticas para IA: álgebra lineal, cálculo, probabilidad y estadística
+- Machine Learning clásico: regresión, clasificación, clustering, scikit-learn
+- Deep Learning: redes neuronales, CNN, RNN, LSTM, Transformers
+- Frameworks: PyTorch, TensorFlow, Hugging Face
+- LLMs: prompt engineering, fine-tuning, RAG, agentes
+- MLOps: versionado de datos y modelos, pipelines, MLflow, deployment de modelos
+- Ética en IA, sesgos, interpretabilidad
+
+## Cosas que SÍ puedo hacer:
+- Explicar conceptos de programación con ejemplos en cualquier lenguaje popular (Python, JavaScript, Java, C++, C#, Go, Rust, PHP, Ruby, etc.)
+- Ayudar a depurar (debuggear) código que el estudiante me envíe
+- Diseñar rutas de aprendizaje según el objetivo del estudiante
+- Corregir código con amabilidad y explicar por qué la versión mejorada es mejor
+- Recomendar recursos (documentación, cursos, libros)
+- Explicar buenas prácticas y patrones de diseño
+
+## Cosas que NO puedo hacer:
+- Hacer el trabajo/tarea del estudiante por él (soy su guía, no su sustituto)
+- Dar certificaciones oficiales
+- Juzgar o criticar duramente
+- Responder en otro idioma que no sea español (salvo palabras técnicas universales)
+
+## Formato de mis respuestas:
+- CORTO (2-4 frases típico), salvo que pida una explicación profunda
+- Siempre en ESPAÑOL
+- Ejemplos de código con bloques markdown usando ```lenguaje
+- Si corrijo: "¡Casi! La forma correcta es... porque..."
+- Si el estudiante acierta: "¡Excelente!" / "¡Exacto!" / "¡Perfecto!" / "¡Muy bien!"
+
+## Cuándo usar RAG (knowledge base):
+- Si el estudiante pregunta por un tema específico, busca primero en la base de conocimiento con `search_knowledge` antes de responder
+- Si no encuentras nada relevante, responde con tu conocimiento general
 """
 
-NIVELES_DESCRIPCION = {
-    "A1": "Beginner - basic phrases and introductions",
-    "A2": "Elementary - simple daily conversations",
-    "B1": "Intermediate - daily situations and opinions",
-    "B2": "Upper-Intermediate - fluent conversations",
-    "C1": "Advanced - complex topics",
-    "C2": "Proficiency - near-native level",
+
+NIVELES_DESCRIPCION_PROG = {
+    "INICIO":       "Inicio - sin experiencia previa, primeros pasos en programación",
+    "NOVATO":       "Novato - conceptos básicos y primer lenguaje",
+    "APRENDIZ":     "Aprendiz - estructuras de control, funciones y POO inicial",
+    "TECNICO":      "Técnico - frameworks, bases de datos y desarrollo web/móvil",
+    "TECNOLOGO":    "Tecnólogo - arquitectura de software, APIs y despliegue",
+    "INGENIERO":    "Ingeniero - sistemas distribuidos, DevOps y buenas prácticas",
+    "INGENIERO_IA": "Ingeniero de IA - machine learning, deep learning y MLOps",
 }
 
 
@@ -162,14 +216,17 @@ def get_rag_context(user_message):
 
 def build_student_context(student_data, modo_actual=""):
     """Construye el contexto del estudiante para el LLM."""
-    nivel = student_data.get("nivel", "A1")
-    nivel_desc = NIVELES_DESCRIPCION.get(nivel, "")
+    nivel = student_data.get("nivel", "INICIO")
+    nivel_desc = NIVELES_DESCRIPCION_PROG.get(nivel, "")
+    modo = modo_actual or student_data.get("modo_actual", "conceptos")
     return f"""
-## Current student information
-- Name: {student_data.get('nombre', 'Student')}
-- Level: {nivel} ({nivel_desc})
-- Goal: {student_data.get('objetivo', 'not specified')}
-- Current mode: {modo_actual or student_data.get('modo_actual', 'conversation')}
+## Información del estudiante actual
+- Nombre: {student_data.get('nombre', 'Estudiante')}
+- Nivel: {nivel} ({nivel_desc})
+- Objetivo: {student_data.get('objetivo', 'no especificado')}
+- Modo actual: {modo}
+
+Adapta tu respuesta al nivel y modo del estudiante. Si el nivel es bajo (INICIO, NOVATO), usa analogías simples y evita jerga. Si el nivel es alto (INGENIERO, INGENIERO_IA), puedes profundizar en arquitectura y conceptos avanzados.
 """
 
 
@@ -182,21 +239,21 @@ def openrouter_response(user_message, student_data, modo_actual=""):
         student_ctx = build_student_context(student_data, modo_actual)
         prompt = f"""{SYSTEM_PROMPT_BASE}{student_ctx}{rag_context}
 
-User said: {user_message}
+Estudiante dijo: {user_message}
 
-Respond as Mr. James in a friendly, encouraging way. Keep it short (2-4 sentences typical)."""
+Responde como el Profesor Byte de forma amable y motivadora. Mantén la respuesta corta (2-4 frases típicas) salvo que el tema requiera más profundidad. Responde SIEMPRE en español."""
 
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://englishai-tutor.com",
-            "X-Title": "EnglishAI Tutor - Mr. James",
+            "HTTP-Referer": "https://codeai-tutor.com",
+            "X-Title": "CodeAI Tutor - Profesor Byte",
         }
         payload = {
             "model": OPENROUTER_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7,
-            "max_tokens": 400,
+            "max_tokens": 600,
         }
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
@@ -221,9 +278,9 @@ def gemini_response(user_message, student_data, modo_actual=""):
         student_ctx = build_student_context(student_data, modo_actual)
         prompt = f"""{SYSTEM_PROMPT_BASE}{student_ctx}{rag_context}
 
-Student said: {user_message}
+Estudiante dijo: {user_message}
 
-Respond as Mr. James:"""
+Responde como el Profesor Byte, en español, de forma amable y motivadora:"""
 
         response = gemini_model.generate_content(prompt)
         return response.text
@@ -242,7 +299,7 @@ def get_llm_response(user_message, student_data, modo_actual=""):
         result = gemini_response(user_message, student_data, modo_actual)
         if result:
             return result
-    return "Sorry, I am having trouble connecting right now. Please try again in a moment."
+    return "Disculpa, estoy teniendo problemas de conexión ahora mismo. Por favor, inténtalo de nuevo en un momento."
 
 
 # ── Gestin de sesin del estudiante ───────────────────────────────────
@@ -252,7 +309,7 @@ def get_student_state():
         session["student"] = {
             "nombre": "",
             "email": "",
-            "nivel": "A1",
+            "nivel": "INICIO",
             "objetivo": "",
             "modo_actual": "",
             "paso_actual": "welcome",
@@ -286,7 +343,7 @@ def index():
 
 @app.route("/api/speak", methods=["POST"])
 def speak_text():
-    """Genera audio TTS en ingles."""
+    """Genera audio TTS en español."""
     try:
         data = request.json
         text = data.get("text", "")
@@ -328,10 +385,10 @@ def chat():
 
         # Accion init: bienvenida inicial
         if action == 'init':
-            student['paso_actual'] = 'welcome'
+            student['paso_actual'] = 'ask_name'
             session.modified = True
             return jsonify({
-                'message': 'Hello! I am Mr. James, your English AI tutor. I am here to help you learn and practice English 24/7. What is your name?',
+                'message': '¡Hola! Soy el Profesor Byte, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?',
                 'botones': None,
                 'paso': 'ask_name',
             })
@@ -352,8 +409,9 @@ def handle_action(action, student):
     """Maneja acciones de botones (level, mode, goal)."""
     paso_actual = student.get("paso_actual", "welcome")
 
-    # Accin: seleccionar nivel
-    if action in ["A1", "A2", "B1", "B2", "C1", "C2"]:
+    # Accin: seleccionar nivel (los 7 niveles del profesor Byte)
+    niveles_validos = ["INICIO", "NOVATO", "APRENDIZ", "TECNICO", "TECNOLOGO", "INGENIERO", "INGENIERO_IA"]
+    if action in niveles_validos:
         student["nivel"] = action
         student["paso_actual"] = "ask_goal"
         session.modified = True
@@ -365,8 +423,8 @@ def handle_action(action, student):
             "paso": "ask_goal",
         })
 
-    # Accin: seleccionar objetivo
-    objetivos = ["travel", "work", "studies", "exams", "entertainment", "personal"]
+    # Accin: seleccionar objetivo (en español, orientado a programación)
+    objetivos = ["trabajo", "estudios", "emprendimiento", "ia", "web", "videojuegos", "datos", "hobby"]
     if action in objetivos:
         student["objetivo"] = action
         student["paso_actual"] = "select_mode"
@@ -383,22 +441,22 @@ def handle_action(action, student):
     if action == "progress":
         if not student.get("email"):
             return jsonify({
-                "message": "To see your progress, please tell me your email first.",
+                "message": "Para ver tu progreso, primero dime tu correo electrónico.",
                 "botones": None,
                 "paso": "ask_email",
             })
         progreso = obtener_progreso_estudiante(student["email"])
         if progreso:
-            msg = f"Here is your progress, {student.get('nombre', 'student')}:\n\n"
-            msg += f"  Lessons completed: {progreso['lecciones_completadas']}\n"
-            msg += f"  Words learned: {progreso['vocabulario_total']}\n"
-            msg += f"  Mistakes tracked: {progreso['errores_totales']}\n"
-            msg += f"\nKeep up the great work!"
+            msg = f"Aquí tienes tu progreso, {student.get('nombre', 'estudiante')}:\n\n"
+            msg += f"  Lecciones completadas: {progreso['lecciones_completadas']}\n"
+            msg += f"  Conceptos aprendidos: {progreso['vocabulario_total']}\n"
+            msg += f"  Errores registrados: {progreso['errores_totales']}\n"
+            msg += f"\n¡Sigue así, lo estás haciendo genial! 🚀"
         else:
-            msg = "You havent started any lessons yet. Lets practice something!"
+            msg = "Aún no has completado lecciones. ¡Vamos a practicar algo de programación!"
         return jsonify({
             "message": msg,
-            "botones": [{"texto": "Continue practicing", "valor": "change_mode"}],
+            "botones": [{"texto": "Continuar practicando", "valor": "change_mode"}],
             "paso": student.get("paso_actual"),
         })
 
@@ -413,12 +471,14 @@ def handle_action(action, student):
             student["registered"] = True
         info_modo = obtener_info_modo(action)
         nombre_modo = info_modo["nombre"] if info_modo else action.title()
-        welcome_msg = f"Great! Lets start {nombre_modo} practice. What would you like to talk about or learn?"
+        emoji_modo = info_modo["emoji"] if info_modo else "💡"
+        welcome_msg = f"¡Excelente! Comenzaremos con el modo {emoji_modo} {nombre_modo}. ¿Qué te gustaría aprender o en qué puedo ayudarte?"
         return jsonify({
             "message": welcome_msg,
             "botones": [
-                {"texto": "Change mode", "valor": "change_mode"},
-                {"texto": "End session", "valor": "goodbye"},
+                {"texto": "Cambiar modo", "valor": "change_mode"},
+                {"texto": "Mi progreso", "valor": "progress"},
+                {"texto": "Finalizar sesión", "valor": "goodbye"},
             ],
             "paso": "in_session",
             "modo": action,
@@ -443,30 +503,30 @@ def handle_action(action, student):
         msg = formatear_mensaje(paso, student)
         return jsonify({"message": msg, "botones": None, "paso": "goodbye"})
 
-    # Accin: ver progreso
+    # Accin: ver progreso (segundo handler, redundante pero seguro)
     if action == "progress":
         if not student.get("email"):
             return jsonify({
-                "message": "To see your progress, please register first. Tell me your email.",
+                "message": "Para ver tu progreso, primero necesito tu correo electrónico.",
                 "botones": None,
                 "paso": "ask_email",
             })
         progreso = obtener_progreso_estudiante(student["email"])
         if progreso:
-            msg = f"Here is your progress, {student.get('nombre', 'student')}:\n\n"
-            msg += f"  Lessons completed: {progreso['lecciones_completadas']}\n"
-            msg += f"  Words learned: {progreso['vocabulario_total']}\n"
-            msg += f"  Mistakes tracked: {progreso['errores_totales']}\n"
-            msg += f"\nKeep up the great work!"
+            msg = f"Aquí tienes tu progreso, {student.get('nombre', 'estudiante')}:\n\n"
+            msg += f"  Lecciones completadas: {progreso['lecciones_completadas']}\n"
+            msg += f"  Conceptos aprendidos: {progreso['vocabulario_total']}\n"
+            msg += f"  Errores registrados: {progreso['errores_totales']}\n"
+            msg += f"\n¡Sigue así, lo estás haciendo genial! 🚀"
         else:
-            msg = "You havent started any lessons yet. Lets practice something!"
+            msg = "Aún no has completado lecciones. ¡Vamos a practicar algo de programación!"
         return jsonify({
             "message": msg,
-            "botones": [{"texto": "Continue practicing", "valor": "change_mode"}],
+            "botones": [{"texto": "Continuar practicando", "valor": "change_mode"}],
             "paso": student.get("paso_actual"),
         })
 
-    return jsonify({"message": "Unknown action", "botones": None})
+    return jsonify({"message": "Acción no reconocida", "botones": None})
 
 
 def handle_step(paso_actual, user_message, student):
@@ -484,7 +544,7 @@ def handle_step(paso_actual, user_message, student):
         student["paso_actual"] = "ask_name"
         session.modified = True
         return jsonify({
-            "message": "Hello! I am Mr. James, your English AI tutor. I am here to help you learn and practice English 24/7. What is your name?",
+            "message": "¡Hola! Soy el Profesor Byte, tu tutor de programación con IA. Estoy aquí para enseñarte a programar las 24 horas, los 7 días de la semana, desde cero hasta Ingeniería de IA. ¡Empecemos! ¿Cómo te llamas?",
             "botones": None,
             "paso": "ask_name",
         })
@@ -521,7 +581,7 @@ def handle_step(paso_actual, user_message, student):
         response = get_llm_response(
             user_message,
             student,
-            student.get("modo_actual", "conversation"),
+            student.get("modo_actual", "conceptos"),
         )
         # Guardar conversacin en BD
         try:
@@ -531,17 +591,17 @@ def handle_step(paso_actual, user_message, student):
                     "nombre": student.get("nombre", ""),
                     "mensaje_usuario": user_message,
                     "respuesta_agente": response,
-                    "modo": student.get("modo_actual", "conversation"),
-                    "nivel": student.get("nivel", "A1"),
+                    "modo": student.get("modo_actual", "conceptos"),
+                    "nivel": student.get("nivel", "INICIO"),
                 })
         except Exception as e:
             app.logger.error(f"Error guardando conversacion: {e}")
         return jsonify({
             "message": response,
             "botones": [
-                {"texto": "Change mode", "valor": "change_mode"},
-                {"texto": "My progress", "valor": "progress"},
-                {"texto": "End session", "valor": "goodbye"},
+                {"texto": "Cambiar modo", "valor": "change_mode"},
+                {"texto": "Mi progreso", "valor": "progress"},
+                {"texto": "Finalizar sesión", "valor": "goodbye"},
             ],
             "paso": "in_session",
         })
@@ -569,13 +629,14 @@ def list_modes_endpoint():
 @app.route("/api/voices", methods=["GET"])
 def list_voices():
     voices = [
-        {"id": "en-US-GuyNeural", "name": "Guy", "gender": "Male", "region": "US", "recommended": True},
-        {"id": "en-US-JennyNeural", "name": "Jenny", "gender": "Female", "region": "US"},
-        {"id": "en-US-DavisNeural", "name": "Davis", "gender": "Male", "region": "US"},
-        {"id": "en-US-AriaNeural", "name": "Aria", "gender": "Female", "region": "US"},
-        {"id": "en-GB-RyanNeural", "name": "Ryan", "gender": "Male", "region": "UK"},
-        {"id": "en-GB-SoniaNeural", "name": "Sonia", "gender": "Female", "region": "UK"},
-        {"id": "en-AU-WilliamNeural", "name": "William", "gender": "Male", "region": "Australia"},
+        {"id": "es-ES-ElviraNeural", "name": "Elvira", "gender": "Female", "region": "España", "recommended": True},
+        {"id": "es-ES-AlvaroNeural", "name": "Álvaro", "gender": "Male", "region": "España"},
+        {"id": "es-MX-DaliaNeural", "name": "Dalia", "gender": "Female", "region": "México"},
+        {"id": "es-MX-JorgeNeural", "name": "Jorge", "gender": "Male", "region": "México"},
+        {"id": "es-AR-ElenaNeural", "name": "Elena", "gender": "Female", "region": "Argentina"},
+        {"id": "es-AR-TomasNeural", "name": "Tomás", "gender": "Male", "region": "Argentina"},
+        {"id": "es-CO-GonzaloNeural", "name": "Gonzalo", "gender": "Male", "region": "Colombia"},
+        {"id": "es-CO-SalomeNeural", "name": "Salomé", "gender": "Female", "region": "Colombia"},
     ]
     return jsonify({"voices": voices, "current": TTS_VOICE})
 
@@ -584,7 +645,7 @@ def list_voices():
 def reset_session():
     """Reinicia la sesin del estudiante."""
     session.pop("student", None)
-    return jsonify({"message": "Session reset", "ok": True})
+    return jsonify({"message": "Sesión reiniciada", "ok": True})
 
 
 @app.route("/api/student", methods=["GET"])
@@ -598,7 +659,7 @@ def get_student_info():
 def health_check():
     return jsonify({
         "status": "ok",
-        "service": "EnglishAI Tutor",
+        "service": "CodeAI Tutor - Profesor Byte",
         "version": "1.0",
         "rag_available": RAG_AVAILABLE,
         "gemini_configured": GEMINI_CONFIGURED,
@@ -635,7 +696,8 @@ def pinecone_status():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.logger.info("=" * 60)
-    app.logger.info("EnglishAI Tutor - Mr. James")
+    app.logger.info("CodeAI Tutor - Profesor Byte")
+    app.logger.info("Enseña programación en 7 niveles: Inicio -> Ingeniero de IA")
     app.logger.info(f"Voice: {TTS_VOICE}")
     app.logger.info(f"Port: {port}")
     app.logger.info("=" * 60)
