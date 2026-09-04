@@ -73,6 +73,87 @@
 
         inputEl.addEventListener("keypress", (e) => { if (e.key === "Enter" && !isProcessing) sendMessage(); });
 
+        // Stream de respuesta del LLM usando SSE. Muestra cada fragmento al llegar.
+        async function streamBotResponse(text) {
+            hideTyping();
+            // Crear el contenedor del mensaje con un span vacio
+            const msg = document.createElement("div");
+            msg.className = "message bot streaming";
+            const span = document.createElement("span");
+            span.textContent = "";
+            msg.appendChild(span);
+            const speakBtn = document.createElement("button");
+            speakBtn.className = "speak-btn";
+            speakBtn.textContent = "🔊";
+            msg.appendChild(speakBtn);
+            messagesEl.appendChild(msg);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+
+            let fullText = "";
+            try {
+                const res = await fetch("/api/chat/stream", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: text })
+                });
+                if (!res.ok || !res.body) {
+                    throw new Error("Stream no disponible");
+                }
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let buffer = "";
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    // Procesar eventos SSE: separar por \n\n
+                    const events = buffer.split(/\r?\n\r?\n/);
+                    buffer = events.pop() || //;
+                    for (const evt of events) {
+                        const line = evt.split(/\r?\n/).find(l => l.startsWith("data: "));
+                        if (!line) continue;
+                        const payload = line.slice(6).trim();
+                        if (!payload) continue;
+                        try {
+                            const obj = JSON.parse(payload);
+                            if (obj.event === "token" && obj.delta) {
+                                fullText += obj.delta;
+                                span.textContent = fullText;
+                                messagesEl.scrollTop = messagesEl.scrollHeight;
+                            } else if (obj.event === "done") {
+                                fullText = obj.text || fullText;
+                                span.textContent = fullText;
+                            } else if (obj.error) {
+                                span.textContent = "Error: " + obj.error;
+                            }
+                        } catch (e) {
+                            // ignore parse errors
+                        }
+                    }
+                }
+                // Configurar speakBtn con el texto completo al final
+                speakBtn.onclick = () => speakText(fullText);
+                msg.classList.remove("streaming");
+                updateLevelBadge("in_session");
+            } catch (e) {
+                // Si el streaming falla, fallback al endpoint clasico
+                try {
+                    const r2 = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: text })
+                    });
+                    const d2 = await r2.json();
+                    span.textContent = d2.message || "";
+                    fullText = d2.message || "";
+                    speakBtn.onclick = () => speakText(fullText);
+                    if (d2.paso) updateLevelBadge(d2.paso);
+                } catch (e2) {
+                    span.textContent = "Error de conexión. Por favor, inténtalo de nuevo.";
+                }
+            }
+        }
+
         async function sendMessage() {
             const text = inputEl.value.trim();
             if (!text || isProcessing) return;
@@ -80,16 +161,8 @@
             inputEl.value = "";
             addMessage(text, "user");
             showTyping();
-            try {
-                const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
-                const data = await res.json();
-                hideTyping();
-                if (data.message) addMessage(data.message, "bot", data.botones);
-                if (data.paso) updateLevelBadge(data.paso);
-            } catch (e) {
-                hideTyping();
-                addMessage("Error de conexión. Por favor, inténtalo de nuevo.", "bot");
-            }
+            // Usar streaming SIEMPRE: la primera respuesta es mas rapida y casi inmediata.
+            await streamBotResponse(text);
             isProcessing = false;
         }
 

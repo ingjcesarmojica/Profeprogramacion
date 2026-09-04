@@ -12,10 +12,11 @@ import asyncio
 import base64
 import re
 import json
+import time
 import tempfile
 import threading
 import requests
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, Response, stream_with_context
 from flask_cors import CORS
 import logging
 import edge_tts
@@ -275,6 +276,64 @@ Responde como el Ing. MOJICA de forma amable y motivadora. Mantén la respuesta 
         return None
 
 
+def openrouter_stream(user_message, student_data, modo_actual=""):
+    """Streaming de OpenRouter. Yield cada fragmento incremental."""
+    if not OPENROUTER_CONFIGURED:
+        return
+    try:
+        rag_context = get_rag_context(user_message)
+        student_ctx = build_student_context(student_data, modo_actual)
+        prompt = f"""{SYSTEM_PROMPT_BASE}{student_ctx}{rag_context}
+
+Estudiante dijo: {user_message}
+
+Responde como el Ing. MOJICA de forma amable y motivadora. Mantén la respuesta corta (2-4 frases típicas) salvo que el tema requiera más profundidad. Responde SIEMPRE en español."""
+
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://codeai-tutor.com",
+            "X-Title": "CodeAI Tutor - Ing. MOJICA",
+        }
+        payload = {
+            "model": OPENROUTER_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7,
+            "max_tokens": 600,
+            "stream": True,
+        }
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=None,
+            stream=True,
+        )
+        response.raise_for_status()
+        for line in response.iter_lines():
+            if not line:
+                continue
+            line = line.decode("utf-8", errors="ignore").strip()
+            if not line.startswith("data: "):
+                continue
+            payload_str = line[6:]
+            if payload_str == "[DONE]":
+                break
+            try:
+                chunk = json.loads(payload_str)
+            except json.JSONDecodeError:
+                continue
+            choices = chunk.get("choices") or []
+            if not choices:
+                continue
+            delta = choices[0].get("delta") or {}
+            piece = delta.get("content")
+            if piece:
+                yield piece
+    except Exception as e:
+        app.logger.error(f"OpenRouter stream error: {e}")
+
+
 def gemini_response(user_message, student_data, modo_actual=""):
     """Llama a Gemini API como fallback."""
     if not GEMINI_CONFIGURED or gemini_model is None:
@@ -295,6 +354,29 @@ Responde como el Ing. MOJICA, en español, de forma amable y motivadora:"""
         return None
 
 
+def gemini_stream(user_message, student_data, modo_actual=""):
+    """Streaming de Gemini. Yield cada fragmento."""
+    if not GEMINI_CONFIGURED or gemini_model is None:
+        return
+    try:
+        rag_context = get_rag_context(user_message)
+        student_ctx = build_student_context(student_data, modo_actual)
+        prompt = f"""{SYSTEM_PROMPT_BASE}{student_ctx}{rag_context}
+
+Estudiante dijo: {user_message}
+
+Responde como el Ing. MOJICA, en español, de forma amable y motivadora:"""
+        for chunk in gemini_model.generate_content(prompt, stream=True):
+            try:
+                text = chunk.text
+            except Exception:
+                text = ""
+            if text:
+                yield text
+    except Exception as e:
+        app.logger.error(f"Gemini stream error: {e}")
+
+
 def get_llm_response(user_message, student_data, modo_actual=""):
     """Obtiene respuesta del LLM (OpenRouter primero, Gemini fallback)."""
     if OPENROUTER_CONFIGURED:
@@ -306,6 +388,25 @@ def get_llm_response(user_message, student_data, modo_actual=""):
         if result:
             return result
     return "Disculpa, estoy teniendo problemas de conexión ahora mismo. Por favor, inténtalo de nuevo en un momento."
+
+
+def get_llm_stream(user_message, student_data, modo_actual=""):
+    """Yield el stream del LLM (OpenRouter -> Gemini -> fallback)."""
+    any_piece = False
+    if OPENROUTER_CONFIGURED:
+        for piece in openrouter_stream(user_message, student_data, modo_actual):
+            any_piece = True
+            yield piece
+        if any_piece:
+            return
+    if GEMINI_CONFIGURED and gemini_model is not None:
+        any_piece = False
+        for piece in gemini_stream(user_message, student_data, modo_actual):
+            any_piece = True
+            yield piece
+        if any_piece:
+            return
+    yield "Disculpa, estoy teniendo problemas de conexión ahora mismo. Por favor, inténtalo de nuevo en un momento."
 
 
 # ── Gestin de sesin del estudiante ───────────────────────────────────
@@ -623,6 +724,40 @@ def handle_step(paso_actual, user_message, student):
         "botones": paso.get("botones"),
         "paso": paso_actual,
     })
+
+
+# ── Endpoint de streaming (SSE) ──────────────────────────────────────
+@app.route("/api/chat/stream", methods=["POST"])
+@stream_with_context
+def chat_stream():
+    """Stream de la respuesta del LLM usando Server-Sent Events.
+
+    Cada chunk que llega del LLM se envia como un evento SSE 'data: <json>'.
+    Al terminar se envia un evento final con done=true.
+    """
+    try:
+        payload = request.json or {}
+        message = payload.get("message", "")
+        if not message:
+            yield "data: " + json.dumps({"error": "No message"}) + "\n\n"
+            return
+        student = get_student_state()
+        modo = student.get("modo_actual") or "conceptos"
+
+        def event_stream():
+            # Primero: hint de paso (in_session)
+            yield "data: " + json.dumps({"event": "start", "paso": "in_session"}) + "\n\n"
+            full = []
+            for piece in get_llm_stream(message, student, modo):
+                full.append(piece)
+                yield "data: " + json.dumps({"event": "token", "delta": piece}) + "\n\n"
+            final_text = "".join(full)
+            yield "data: " + json.dumps({"event": "done", "text": final_text}) + "\n\n"
+
+        return Response(event_stream(), mimetype="text/event-stream")
+    except Exception as e:
+        app.logger.error(f"chat_stream error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 # ── Endpoints auxiliares ─────────────────────────────────────────────
