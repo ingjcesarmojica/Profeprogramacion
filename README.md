@@ -48,7 +48,6 @@ Un agente profesor de programación construido con Flask, Pinecone RAG, Supabase
 - **Embeddings**: Gemini embedding-001
 - **Deploy**: Gunicorn (Heroku-ready vía Procfile)
 
-PLACEHOLDER_P2
 ## Project Structure
 
 ```
@@ -123,7 +122,6 @@ python app.py
 
 Abre http://localhost:5000 y verás al **Profesor Byte** listo para enseñar.
 
-PLACEHOLDER_P3
 ## Flujo de la Conversación
 
 1. **Welcome** - El Profesor Byte saluda al estudiante
