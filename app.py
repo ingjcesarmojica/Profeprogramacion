@@ -811,7 +811,7 @@ def handle_action(action, student):
             msg = "Aún no has completado lecciones. ¡Vamos a practicar algo de programación!"
         return jsonify({
             "message": msg,
-            "botones": [{"texto": "Continuar practicando", "valor": "change_mode"}],
+            "botones": [{"texto": "Finalizar sesión", "valor": "goodbye"}],
             "paso": student.get("paso_actual"),
         })
 
@@ -827,12 +827,10 @@ def handle_action(action, student):
         info_modo = obtener_info_modo(action)
         nombre_modo = info_modo["nombre"] if info_modo else action.title()
         emoji_modo = info_modo["emoji"] if info_modo else "💡"
-        welcome_msg = f"¡Excelente! Comenzaremos con el modo {emoji_modo} {nombre_modo}. ¿Qué te gustaría aprender o en qué puedo ayudarte?"
+        welcome_msg = f"¡Excelente! Comenzemos con el modo {emoji_modo} {nombre_modo}. ¿Qué te gustaría aprender o en qué puedo ayudarte?"
         return jsonify({
             "message": welcome_msg,
             "botones": [
-                {"texto": "Cambiar modo", "valor": "change_mode"},
-                {"texto": "Mi progreso", "valor": "progress"},
                 {"texto": "Finalizar sesión", "valor": "goodbye"},
             ],
             "paso": "in_session",
@@ -877,7 +875,7 @@ def handle_action(action, student):
             msg = "Aún no has completado lecciones. ¡Vamos a practicar algo de programación!"
         return jsonify({
             "message": msg,
-            "botones": [{"texto": "Continuar practicando", "valor": "change_mode"}],
+            "botones": [{"texto": "Finalizar sesión", "valor": "goodbye"}],
             "paso": student.get("paso_actual"),
         })
 
@@ -954,8 +952,6 @@ def handle_step(paso_actual, user_message, student):
         return jsonify({
             "message": response,
             "botones": [
-                {"texto": "Cambiar modo", "valor": "change_mode"},
-                {"texto": "Mi progreso", "valor": "progress"},
                 {"texto": "Finalizar sesión", "valor": "goodbye"},
             ],
             "paso": "in_session",
@@ -973,9 +969,9 @@ def handle_step(paso_actual, user_message, student):
 # ── Endpoint de streaming (SSE) ──────────────────────────────────────
 # Botones que se muestran al final de cada respuesta del LLM, igual que
 # antes en el endpoint clasico /api/chat cuando paso=in_session.
+# Solo dejamos "Finalizar sesion". Se quitaron "Cambiar modo" y
+# "Mi progreso" por peticion del usuario.
 IN_SESSION_BOTONES = [
-    {"texto": "Cambiar modo",   "valor": "change_mode"},
-    {"texto": "Mi progreso",    "valor": "progress"},
     {"texto": "Finalizar sesión", "valor": "goodbye"},
 ]
 
@@ -1007,8 +1003,9 @@ def chat_stream():
       el guion con handle_step y emitimos el mensaje + botones del
       paso siguiente como un unico evento SSE.
     - Si SI estamos en in_session: usamos el LLM con streaming real,
-      token por token, y al final emitimos los botones de acciones
-      rapidas (Cambiar modo, Mi progreso, Finalizar sesion).
+      token por token, y al final emitimos solo el boton "Finalizar
+      sesion". (Se quitaron "Cambiar modo" y "Mi progreso" por
+      peticion del usuario).
 
     Anti-buffering:
     - Cabecera 'X-Accel-Buffering: no' para nginx/proxies
