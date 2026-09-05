@@ -32,7 +32,16 @@
         .code-block { background: #0d1b2a; border: 1px solid #1e3a5f; border-radius: 10px; padding: 12px 14px; margin: 8px 0; font-family: "Fira Code", "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5; color: #e3f2fd; overflow-x: auto; white-space: pre; max-height: 300px; overflow-y: auto; position: relative; }
         .code-block::-webkit-scrollbar { height: 6px; width: 6px; }
         .code-block::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
-        .code-block-lang { position: absolute; top: 6px; right: 8px; font-size: 10px; color: #64b5f6; font-weight: 600; text-transform: uppercase; opacity: 0.7; font-family: "Inter", sans-serif; }
+        .code-block-lang { position: absolute; top: 6px; right: 42px; font-size: 10px; color: #64b5f6; font-weight: 600; text-transform: uppercase; opacity: 0.7; font-family: "Inter", sans-serif; }
+        .code-block-copy { position: absolute; top: 6px; right: 8px; background: #1e3a5f; border: 1px solid #2c5282; color: #90caf9; padding: 3px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: "Inter", sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
+        .code-block-copy:hover { background: #1976d2; color: #fff; border-color: #1976d2; }
+        .code-block-copy.copied { background: #4caf50; color: #fff; border-color: #4caf50; }
+        .code-block-wrapper { position: relative; margin: 8px 0; }
+        .bot-text a { color: #64b5f6; text-decoration: none; border-bottom: 1px dotted #64b5f6; word-break: break-all; }
+        .bot-text a:hover { color: #90caf9; border-bottom-color: #90caf9; }
+        .link-card { display: inline-flex; align-items: center; gap: 6px; background: #1e3a5f; border: 1px solid #2c5282; border-radius: 8px; padding: 6px 10px; margin: 4px 6px 4px 0; color: #90caf9; font-size: 12px; text-decoration: none; transition: all 0.2s; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .link-card:hover { background: #1976d2; color: #fff; border-color: #1976d2; transform: translateY(-1px); }
+        .link-card-icon { font-size: 14px; flex-shrink: 0; }
         .bot-text { white-space: pre-wrap; word-wrap: break-word; }
         .bot-text p { margin: 6px 0; }
         .bot-text strong { font-weight: 700; color: #90caf9; }
@@ -119,58 +128,126 @@
         function renderMarkdown(rawText) {
             const container = document.createElement("div");
             container.className = "bot-text";
-            // speakText acumula solo lo que NO es codigo
+            // speakText acumula solo lo que NO es codigo (limpio para TTS)
             let speakText = "";
-            // Split por bloques de codigo (```lenguaje\ncodigo\n```)
-            // usando una regex que captura el bloque entero.
+            // Regex: codigo de bloque (```lenguaje\ncodigo\n```).
+            // Usamos una sola pasada con lastIndex.
             const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
             let lastIndex = 0;
             let match;
             while ((match = codeBlockRegex.exec(rawText)) !== null) {
-                // Texto antes del bloque de codigo
                 const before = rawText.slice(lastIndex, match.index);
                 if (before) {
-                    const inlineHtml = formatInlineMarkdown(before);
-                    container.insertAdjacentHTML("beforeend", inlineHtml);
+                    container.insertAdjacentHTML("beforeend", formatInlineMarkdown(before));
                     speakText += stripMarkdown(before) + " ";
                 }
-                // Bloque de codigo: lo renderizamos como <pre><code>
                 const lang = match[1] || "";
                 const code = match[2] || "";
+                // Envoltorio para tener el boton copiar + lenguaje + codigo
+                const wrapper = document.createElement("div");
+                wrapper.className = "code-block-wrapper";
                 const pre = document.createElement("pre");
                 pre.className = "code-block";
-                // Etiqueta de lenguaje arriba a la derecha
                 if (lang) {
                     const langLabel = document.createElement("span");
                     langLabel.className = "code-block-lang";
                     langLabel.textContent = lang;
                     pre.appendChild(langLabel);
                 }
+                // Boton copiar
+                const copyBtn = document.createElement("button");
+                copyBtn.className = "code-block-copy";
+                copyBtn.type = "button";
+                copyBtn.innerHTML = '<span>📋</span><span class="copy-label">Copiar</span>';
+                copyBtn.title = "Copiar codigo al portapapeles";
+                copyBtn.addEventListener("click", async () => {
+                    try {
+                        await navigator.clipboard.writeText(code);
+                        copyBtn.classList.add("copied");
+                        copyBtn.querySelector(".copy-label").textContent = "¡Copiado!";
+                        setTimeout(() => {
+                            copyBtn.classList.remove("copied");
+                            copyBtn.querySelector(".copy-label").textContent = "Copiar";
+                        }, 2000);
+                    } catch (e) {
+                        // Fallback para navegadores sin clipboard API
+                        const ta = document.createElement("textarea");
+                        ta.value = code;
+                        ta.style.position = "fixed";
+                        ta.style.left = "-9999px";
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try { document.execCommand("copy"); } catch (_) {}
+                        document.body.removeChild(ta);
+                        copyBtn.querySelector(".copy-label").textContent = "¡Copiado!";
+                        setTimeout(() => {
+                            copyBtn.querySelector(".copy-label").textContent = "Copiar";
+                        }, 2000);
+                    }
+                });
+                pre.appendChild(copyBtn);
                 const codeEl = document.createElement("code");
                 codeEl.textContent = code;
                 pre.appendChild(codeEl);
-                container.appendChild(pre);
+                wrapper.appendChild(pre);
+                container.appendChild(wrapper);
                 // Para TTS: NO leemos el codigo, solo anunciamos que hay uno.
                 speakText += "Aquí va un ejemplo de código. ";
                 lastIndex = match.index + match[0].length;
             }
-            // Resto del texto despues del ultimo bloque de codigo
             const tail = rawText.slice(lastIndex);
             if (tail) {
                 container.insertAdjacentHTML("beforeend", formatInlineMarkdown(tail));
                 speakText += stripMarkdown(tail);
             }
-            return { container, speakText: speakText.trim() };
+            return { container, speakText: cleanSpeakText(speakText.trim()) };
         }
 
         // Markdown inline (sin bloques de codigo): negritas, cursivas,
-        // codigo en linea, listas simples.
+        // codigo en linea, listas, links.
         function formatInlineMarkdown(text) {
             // Escapar HTML primero para evitar XSS
             let s = text
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;");
+
+            // Links markdown: [texto](url) -> tarjeta con icono.
+            // Los links SIEMPRE abren en nueva pestana y se muestran
+            // como botones tipo "link card" para que destaquen.
+            s = s.replace(
+                /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+                (_, label, url) => {
+                    const safeLabel = label
+                        .replace(/&amp;/g, "&")
+                        .replace(/&lt;/g, "<")
+                        .replace(/&gt;/g, ">");
+                    const safeUrl = url
+                        .replace(/&amp;/g, "&")
+                        .replace(/&lt;/g, "<")
+                        .replace(/&gt;/g, ">");
+                    return (
+                        `<a class="link-card" href="${safeUrl}" target="_blank" rel="noopener noreferrer">` +
+                        `<span class="link-card-icon">🔗</span>` +
+                        `<span>${safeLabel}</span></a>`
+                    );
+                }
+            );
+
+            // URLs planas (sin formato markdown): tambien las convertimos
+            // en link-card para que el alumno pueda abrirlas facilmente.
+            s = s.replace(
+                /(^|[\s>])(https?:\/\/[^\s<]+)/g,
+                (_, prefix, url) => {
+                    // Evitar duplicar si ya esta dentro de un link-card
+                    if (s.includes(`href="${url}"`)) return _;
+                    return prefix +
+                        `<a class="link-card" href="${url}" target="_blank" rel="noopener noreferrer">` +
+                        `<span class="link-card-icon">🔗</span>` +
+                        `<span>${url.length > 40 ? url.slice(0, 37) + "..." : url}</span></a>`;
+                }
+            );
+
             // Codigo en linea: `x` -> <code>x</code>
             s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
             // Negritas: **x** -> <strong>x</strong>
@@ -186,13 +263,61 @@
         }
 
         // Para TTS: quitar todo el markdown y dejar texto natural.
+        // No debe leer asteriscos, almohadillas, parentesis sueltos, emojis,
+        // ni links. Solo la ensenanza del profesor.
         function stripMarkdown(text) {
             let s = text;
+            // Quitar links markdown completos [texto](url) -> nada
+            s = s.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+            // Quitar URLs planas -> solo mencionamos "enlace"
+            s = s.replace(/https?:\/\/\S+/g, "enlace");
+            // Codigo en linea
             s = s.replace(/`([^`]+)`/g, "$1");
+            // Negritas y cursivas (asteriscos)
             s = s.replace(/\*\*([^*\n]+?)\*\*/g, "$1");
             s = s.replace(/(?<![A-Za-z0-9_])\*([^*\n]+?)\*(?![A-Za-z0-9_])/g, "$1");
+            // Listas
             s = s.replace(/^\s*[-*]\s+/gm, "");
+            // Saltos de linea
             s = s.replace(/\n/g, " ");
+            return s.trim();
+        }
+
+        // Limpieza FINAL del texto que va a TTS: quitar asteriscos,
+        // almohadillas, parentesis sueltos, emojis, simbolos raros.
+        // El profesor solo debe leer la ensenanza, nada de codigo,
+        // ni links, ni markdown residual.
+        function cleanSpeakText(text) {
+            if (!text) return "";
+            let s = text;
+            // URLs residuales (stripMarkdown las deja como "enlace"
+            // o "https://...", las quitamos del todo)
+            s = s.replace(/https?:\/\/\S+/g, " ");
+            s = s.replace(/\benlace\b/g, " ");
+            // Emojis: cualquier emoji unicode se elimina
+            s = s.replace(
+                /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F2FF}]/gu,
+                " "
+            );
+            // Almohadillas sueltas (markdown headers o comentarios)
+            s = s.replace(/#+\s?/g, " ");
+            // Asteriscos sueltos (los que no se quitaron antes)
+            s = s.replace(/\*/g, " ");
+            // Parentesis, corchetes y llaves sueltos
+            s = s.replace(/[(){}\[\]]/g, " ");
+            // Backticks sueltos
+            s = s.replace(/`/g, " ");
+            // Barras invertidas
+            s = s.replace(/\\/g, " ");
+            // Otros simbolos problematicos
+            s = s.replace(/[<>|~^]/g, " ");
+            // Flechas y simbolos de asignacion -> desaparecen (no "menos")
+            s = s.replace(/->|=>|==/g, " ");
+            s = s.replace(/=/g, " ");
+            // Quitar guiones sueltos entre espacios (de listas o flechas)
+            s = s.replace(/\s+-\s+/g, " ");
+            s = s.replace(/^\s*-\s*/, "");
+            // Multiples espacios -> uno solo
             s = s.replace(/\s+/g, " ");
             return s.trim();
         }
