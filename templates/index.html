@@ -290,34 +290,50 @@
         function cleanSpeakText(text) {
             if (!text) return "";
             let s = text;
-            // URLs residuales (stripMarkdown las deja como "enlace"
-            // o "https://...", las quitamos del todo)
+            // 0. CLAVE: Eliminar cualquier codigo que haya quedado.
+            // Si stripMarkdown no detecto bien el bloque (porque el
+            // streaming envio backticks sin cerrar), igualmente aqui
+            // quitamos todo lo que parezca codigo:
+            // - Bloques de codigo: ```...```
+            s = s.replace(/```[\s\S]*?```/g, " ");
+            s = s.replace(/```[\s\S]*/g, " ");   // bloque sin cerrar
+            // - Codigo en linea: `...`
+            s = s.replace(/`[^`]*`/g, " ");
+            // - Cualquier backtick suelto residual
+            s = s.replace(/`/g, " ");
+            // 1. URLs residuales
             s = s.replace(/https?:\/\/\S+/g, " ");
             s = s.replace(/\benlace\b/g, " ");
-            // Emojis: cualquier emoji unicode se elimina
+            // 2. Emojis: cualquier emoji unicode se elimina
             s = s.replace(
                 /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F2FF}]/gu,
                 " "
             );
-            // Almohadillas sueltas (markdown headers o comentarios)
+            // 3. Numeracion de listas "1)", "2)", "1.", "2." que TTS
+            // leeria "uno parentesis" o "uno punto".
+            s = s.replace(/\b\d+[\.\)]\s+/g, " ");
+            // 4. Almohadillas sueltas (markdown headers o comentarios)
             s = s.replace(/#+\s?/g, " ");
-            // Asteriscos sueltos (los que no se quitaron antes)
+            // 5. Asteriscos sueltos (los que no se quitaron antes)
             s = s.replace(/\*/g, " ");
-            // Parentesis, corchetes y llaves sueltos
+            // 6. Parentesis, corchetes y llaves sueltos (clave para que
+            // no diga "parentesis abre" o "corchete cierra")
             s = s.replace(/[(){}\[\]]/g, " ");
-            // Backticks sueltos
-            s = s.replace(/`/g, " ");
-            // Barras invertidas
-            s = s.replace(/\\/g, " ");
-            // Otros simbolos problematicos
+            // 7. Barras invertidas y normales (codigo)
+            s = s.replace(/[\\\/]/g, " ");
+            // 8. Otros simbolos problematicos
             s = s.replace(/[<>|~^]/g, " ");
-            // Flechas y simbolos de asignacion -> desaparecen (no "menos")
+            // 9. Flechas y simbolos de asignacion -> desaparecen (no "menos")
             s = s.replace(/->|=>|==/g, " ");
             s = s.replace(/=/g, " ");
-            // Quitar guiones sueltos entre espacios (de listas o flechas)
+            // 10. Operadores de codigo comunes
+            s = s.replace(/[+\-*\/%]=?/g, " ");
+            // 11. Puntos y comas al final de palabras suenan raro
+            s = s.replace(/;\s*$/gm, " ");
+            // 12. Quitar guiones sueltos entre espacios
             s = s.replace(/\s+-\s+/g, " ");
             s = s.replace(/^\s*-\s*/, "");
-            // Multiples espacios -> uno solo
+            // 13. Multiples espacios -> uno solo
             s = s.replace(/\s+/g, " ");
             return s.trim();
         }
@@ -351,23 +367,27 @@
             let firstTokenSeen = false;
             let fullText = "";        // markdown crudo del LLM
             let speakOnlyText = "";   // texto limpio para TTS (sin codigo)
-            // Re-renderizador con throttling: no queremos re-renderizar el
-            // markdown completo en cada token (seria lento). Usamos un
-            // microtask para aplazar al final del tick.
+            // Re-renderizador con throttling: durante el stream usamos
+            // queueMicrotask para evitar re-renderizar el markdown completo
+            // en cada token (seria lento). Pero cuando llega el `done`,
+            // forzamos un render SINCRONO con `doRenderNow()` para que
+            // `speakOnlyText` este actualizado ANTES de `finalizeResponse()`.
             let renderScheduled = false;
+            const doRenderNow = () => {
+                const { container, speakText } = renderMarkdown(fullText);
+                textContainer.innerHTML = "";
+                while (container.firstChild) {
+                    textContainer.appendChild(container.firstChild);
+                }
+                speakOnlyText = speakText;
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            };
             const scheduleRender = () => {
                 if (renderScheduled) return;
                 renderScheduled = true;
                 queueMicrotask(() => {
                     renderScheduled = false;
-                    const { container, speakText } = renderMarkdown(fullText);
-                    textContainer.innerHTML = "";
-                    // Mover todos los hijos del container al textContainer
-                    while (container.firstChild) {
-                        textContainer.appendChild(container.firstChild);
-                    }
-                    speakOnlyText = speakText;
-                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                    doRenderNow();
                 });
             };
 
@@ -375,13 +395,17 @@
             // Aqui configuramos el speakBtn, disparamos auto-play si esta
             // habilitado, y dejamos el contenido listo.
             const finalizeResponse = () => {
+                // Forzar render sincrono aqui: asi speakOnlyText esta al dia
+                // ANTES de chequear si hay que auto-play.
+                doRenderNow();
                 speakBtn.classList.remove("playing");
                 speakBtn.textContent = "🔊";
                 speakBtn.onclick = () => speakFromBtn(speakBtn);
                 // Si la voz automatica esta activa, reproducir inmediatamente.
                 if (voiceEnabled && speakOnlyText.trim()) {
+                    console.log("Auto-play disparado, speakOnlyText len=", speakOnlyText.length);
                     // Pequeno delay para que el usuario vea el boton "playing"
-                    setTimeout(() => speakFromBtn(speakBtn), 250);
+                    setTimeout(() => speakFromBtn(speakBtn), 300);
                 }
             };
 
@@ -469,7 +493,6 @@
                                 clearTimeout(streamTimer);
                                 clearTimeout(firstTokenTimer);
                                 fullText = obj.text || fullText;
-                                scheduleRender();
                                 // Renderizar botones del paso (niveles, modos, acciones rapidas)
                                 if (obj.botones && obj.botones.length) {
                                     const cont = document.createElement("div");
@@ -491,7 +514,7 @@
                                     messagesEl.scrollTop = messagesEl.scrollHeight;
                                 }
                                 if (obj.paso) updateLevelBadge(obj.paso);
-                                scheduleRender();
+                                // finalizeResponse hace el render sincrono y dispara auto-play
                                 finalizeResponse();
                             } else if (obj.error) {
                                 if (typingDots.parentNode) typingDots.remove();
