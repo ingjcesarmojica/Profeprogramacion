@@ -468,7 +468,7 @@ Responde como el Ing. MOJICA de forma amable y motivadora. Mantén la respuesta 
             "model": OPENROUTER_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7,
-            "max_tokens": 600,
+            "max_tokens": 1200,
         }
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
@@ -488,7 +488,9 @@ def openrouter_stream(user_message, student_data, modo_actual=""):
     """Streaming de OpenRouter. Yield cada fragmento incremental.
 
     Optimizaciones de latencia:
-    - max_tokens bajo (350) para respuestas cortas y rapidas
+    - max_tokens 1200: suficiente para respuestas con bloques de
+      codigo completos (HTML, Python, etc.) sin que el LLM los
+      corte a la mitad por truncamiento.
     - timeout corto (10s) en el handshake: si el primer byte tarda mas,
       el orquestador hace fallback automatico a Gemini
     - RAG solo si el indice Pinecone tiene vectores (chequeo previo)
@@ -514,7 +516,7 @@ Responde como el Ing. MOJICA de forma amable y motivadora. Mantén la respuesta 
             "model": OPENROUTER_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7,
-            "max_tokens": 350,
+            "max_tokens": 1200,
             "stream": True,
         }
         response = requests.post(
@@ -585,7 +587,7 @@ Responde como el Ing. MOJICA, en español, de forma amable y motivadora:"""
         for chunk in gemini_model.generate_content(
             prompt,
             stream=True,
-            generation_config={"max_output_tokens": 350, "temperature": 0.7},
+            generation_config={"max_output_tokens": 1200, "temperature": 0.7},
         ):
             try:
                 text = chunk.text

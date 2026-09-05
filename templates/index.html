@@ -130,9 +130,12 @@
             container.className = "bot-text";
             // speakText acumula solo lo que NO es codigo (limpio para TTS)
             let speakText = "";
-            // Regex: codigo de bloque (```lenguaje\ncodigo\n```).
-            // Usamos una sola pasada con lastIndex.
-            const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
+            // Regex: bloques de codigo ```lenguaje\n...codigo...\n```
+            // IMPORTANTE: solo matching cuando ``` aparece al INICIO de linea.
+            // Eso evita que un ``` accidental DENTRO del codigo cierre el
+            // bloque prematuramente. El lazy `*?` con la约束 `^` es la
+            // combinacion correcta.
+            const codeBlockRegex = /^```(\w*)\n?([\s\S]*?)\n?```\s*$/gm;
             let lastIndex = 0;
             let match;
             while ((match = codeBlockRegex.exec(rawText)) !== null) {
